@@ -923,10 +923,12 @@ function renderCust(){
     );
   }
 
-  // sort (push completed to bottom like before; uses _loanCompleted now)
+  // sort — only push completed to bottom when viewing ALL, not when explicitly filtered
   filtered.sort((a,b)=>{
-    if(a._loanCompleted && !b._loanCompleted) return 1;
-    if(!a._loanCompleted && b._loanCompleted) return -1;
+    if(aFilter === 'all') {
+      if(a._loanCompleted && !b._loanCompleted) return 1;
+      if(!a._loanCompleted && b._loanCompleted) return -1;
+    }
     return (parseInt((b.customerId||'').split('-').pop())||0)-(parseInt((a.customerId||'').split('-').pop())||0);
   });
 
@@ -989,6 +991,7 @@ function renderCust(){
           <div class="cc-row"><span class="cc-rl">📊 Total Payable</span><span class="cc-rv">${fmtM(t)}</span></div>
           <div class="pbw"><div class="pb ${pbc}" style="width:${pct}%"></div></div>
           <div class="pb-p" style="color:${pcc}">${pct}% complete</div>
+          ${dn ? `<div style="margin-top:4px;padding:3px 7px;border-radius:6px;background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.25);font-size:9px;font-weight:800;color:#4f8ef7;text-align:center;">✅ Loan Fully Paid</div>` : ''}
           ${ta>0?`<div class="cc-td">Today: <b>${fmtM(ta)}</b></div>`:''}
         </div>
 
