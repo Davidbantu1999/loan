@@ -246,7 +246,7 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
 .ft[data-f="paid"].on{background:rgba(34,212,94,.08);border-color:rgba(34,212,94,.22);color:#22d45e}
 .ft[data-f="overdue"].on{background:rgba(240,82,82,.08);border-color:rgba(240,82,82,.22);color:#f05252}
 .ft[data-f="completed"].on{background:rgba(34,212,94,.08);border-color:rgba(34,212,94,.22);color:#22d45e}
-.ft[data-f="done"].on{background:rgba(34,212,94,.18);border-color:rgba(34,212,94,.5);color:#22d45e;font-weight:900}
+.ft[data-f="done"].on{background:rgba(79,142,247,.15);border-color:rgba(79,142,247,.4);color:#4f8ef7;font-weight:900}
 .ft[data-f="notpaid"].on{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.22);color:#fbbf24}
 .tbar{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 .swrap{position:relative;flex:1;min-width:130px}
@@ -434,7 +434,17 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
 </head>
 <body>
 <div id="loader"><div class="ld-logo">SF</div><div class="ld-title">SR Finance</div><div class="ld-sub" id="ldSub">Loading...</div><div class="ld-bwrap"><div class="ld-bfill" id="ldFill"></div></div><div class="ld-pct" id="ldPct">0%</div></div>
-<div class="pay-anim-ov" id="payAnimOv"><div class="pay-card"><div class="pay-icon">✅</div><div class="pay-amt" id="payAnimAmt">₹0</div><div class="pay-lbl">Payment Saved!</div></div></div>
+<div class="pay-anim-ov" id="payAnimOv">
+  <div class="pay-card">
+    <div class="pay-icon">✅</div>
+    <div class="pay-amt" id="payAnimAmt">₹0</div>
+    <div class="pay-lbl">Payment Saved!</div>
+    <div style="margin-top:6px;text-align:center">
+      <div style="font-size:15px;font-weight:900;color:#4f8ef7" id="payAnimName"></div>
+      <div style="font-size:11px;font-weight:700;color:#93c5fd;margin-top:2px" id="payAnimId"></div>
+    </div>
+  </div>
+</div>
 <div class="ifr-ov" id="ifrOv"><div class="ifr-bar"><button onclick="closeIfr()" style="width:32px;height:32px;border-radius:7px;background:var(--s2);border:1px solid var(--bdr);color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">←</button><div class="ifr-title" id="ifrTitle">Loading...</div><button class="ifr-close" onclick="closeIfr()">✕ Close</button></div><iframe class="ifr-frame" id="ifrFrame" src="" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe></div>
 <div class="sbov" id="sbov" onclick="tSB()"></div>
 <div class="sb" id="sb">
@@ -505,7 +515,7 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
       <button class="ft" data-f="paid" onclick="setF('paid')">✅ Paid Today</button>
       <button class="ft" data-f="overdue" onclick="setF('overdue')">🔴 Overdue</button>
       <button class="ft" data-f="completed" onclick="setF('completed')">🏁 Loan Completed</button>
-      <button class="ft" data-f="done" onclick="setF('done')">✅ Done</button>
+      <button class="ft" data-f="done" onclick="setF('done')">✅ Done (100%)</button>
       <button class="ft" data-f="notpaid" onclick="setF('notpaid')">⏳ Not Paid</button>
     </div>
     <div class="tbar">
@@ -568,14 +578,14 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
 <div class="modal" id="mCall">
   <div class="mc" style="text-align:center;max-width:320px">
     <div class="mb"></div>
-    <div style="font-size:40px;margin-bottom:8px">📞</div>
-    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px" id="callName">Unknown</div>
-    <div style="font-size:11px;color:var(--t3);margin-bottom:14px">Customer Phone Number</div>
-    <div style="background:linear-gradient(135deg,rgba(34,212,94,.15),rgba(34,212,94,.05));border:2px solid rgba(34,212,94,.35);border-radius:14px;padding:16px 20px;margin-bottom:14px">
-      <div style="font-size:9px;color:#22d45e;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📱 Phone Number</div>
-      <div style="font-size:26px;font-weight:900;color:#22d45e;letter-spacing:2px;font-variant-numeric:tabular-nums" id="callPhone">No phone</div>
+    <div style="font-size:38px;margin-bottom:6px">📞</div>
+    <div style="font-size:14px;font-weight:900;color:var(--text);margin-bottom:3px" id="callModalName">—</div>
+    <div style="font-size:10px;color:var(--t3);font-weight:600;margin-bottom:14px">Customer Phone Number</div>
+    <div style="background:linear-gradient(135deg,rgba(79,142,247,.15),rgba(79,142,247,.05));border:2px solid rgba(79,142,247,.4);border-radius:14px;padding:18px 24px;margin-bottom:16px">
+      <div style="font-size:9px;color:#4f8ef7;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">📱 Phone Number</div>
+      <div style="font-size:28px;font-weight:900;color:#4f8ef7;letter-spacing:3px;font-variant-numeric:tabular-nums" id="callModalPhone">—</div>
     </div>
-    <a id="callLink" href="tel:+" style="display:block;background:linear-gradient(135deg,#22d45e,#16a34a);color:#fff;text-decoration:none;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:800;margin-bottom:8px">📞 Tap to Call</a>
+    <a id="callModalLink" href="tel:+" style="display:block;background:linear-gradient(135deg,#4f8ef7,#1d4ed8);color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:800;margin-bottom:8px;box-shadow:0 4px 16px rgba(79,142,247,.3)">📞 Tap to Call</a>
     <button class="btn bx bfull" onclick="cM('mCall')">✕ Close</button>
   </div>
 </div>
@@ -644,9 +654,15 @@ applyTheme((localStorage.getItem('srTheme')||'dark')==='dark');
 function openIfr(url,title){document.getElementById('ifrTitle').textContent=title||url;document.getElementById('ifrFrame').src=url;document.getElementById('ifrOv').classList.add('on');document.body.style.overflow='hidden';if(document.getElementById('sb').classList.contains('on'))tSB()}
 function closeIfr(){document.getElementById('ifrOv').classList.remove('on');document.getElementById('ifrFrame').src='';document.body.style.overflow=''}
 /* ══ PAY ANIMATION ══ */
-function showPayAnim(amt){
+function showPayAnim(amt,custId){
   const ov=document.getElementById('payAnimOv');
   document.getElementById('payAnimAmt').textContent=fmtM(amt||0);
+  // show customer name and id
+  const c=getCust(custId||'');
+  const nameEl=document.getElementById('payAnimName');
+  const idEl=document.getElementById('payAnimId');
+  if(nameEl) nameEl.textContent=c?c.name:'';
+  if(idEl) idEl.textContent=c?c.customerId:'';
   ov.classList.add('on');
   const coins=['💰','💵','🪙','💸'];
   for(let i=0;i<18;i++){
@@ -656,7 +672,7 @@ function showPayAnim(amt){
     el.style.cssText=`left:50%;top:50%;--tx:${tx}px;--ty:${ty}px;--tr:${Math.random()*720-360}deg;animation-delay:${Math.random()*.15}s;animation-duration:${.9+Math.random()*.4}s`;
     document.body.appendChild(el);setTimeout(()=>el.remove(),1600);
   }
-  setTimeout(()=>ov.classList.remove('on'),1700);
+  setTimeout(()=>ov.classList.remove('on'),2200);
 }
 /* ══ FIREBASE ══ */
 const FC={apiKey:"AIzaSyDQlQzo1yVfQOYYgNCrOcqBwLEAXKfZWCE",authDomain:"loan-17784.firebaseapp.com",databaseURL:"https://loan-17784-default-rtdb.europe-west1.firebasedatabase.app",projectId:"loan-17784",storageBucket:"loan-17784.firebasestorage.app",messagingSenderId:"30800980008",appId:"1:30800980008:web:9869d2e63a61b2e7022d1d"};
@@ -860,24 +876,25 @@ function renderCust(){
   }
   // location filter
   if(aLoc) cs=cs.filter(c=>(c.customerId||'').split('-')[0]===aLoc);
-  // compute helper flags + normalized status
+  // compute all flags fresh from Firebase data
   cs=cs.map(c=>{
-    const pd=calcPaid(c.customerId);const t=Number(c.totalPayable)||0;
-    const pct=t>0?Math.min(100,Math.round((pd/t)*100)):0;
-    const dn=t>0&&pd>=t;
+    const paid=calcPaid(c.customerId);
+    const t=Number(c.totalPayable)||0;
+    const pct=t>0?Math.min(100,Math.round((paid/t)*100)):0;
+    const dn=t>0&&paid>=t;
     const ov=!dn&&isOD(c);
     const tp=isTdPaid(c.customerId);
     const ta=tdPay(c.customerId);
-    return{...c,_paid:pd,_t:t,_pn:Math.max(0,t-pd),_pct:pct,_dn:dn,_ov:ov,_tp:tp,_ta:ta};
+    return{...c,_paid:paid,_t:t,_pn:Math.max(0,t-paid),_pct:pct,_dn:dn,_ov:ov,_tp:tp,_ta:ta};
   });
   // filter
   let filtered=cs;
-  if(aFilter==='paid')filtered=cs.filter(c=>c._tp&&!c._dn);
-  else if(aFilter==='notpaid')filtered=cs.filter(c=>!c._tp&&!c._dn&&!c._ov);
-  else if(aFilter==='overdue')filtered=cs.filter(c=>c._ov);
-  else if(aFilter==='completed')filtered=cs.filter(c=>c._dn);
-  else if(aFilter==='done')filtered=cs.filter(c=>c._pct>=100);
-  // search filter
+  if(aFilter==='paid') filtered=cs.filter(c=>c._tp&&!c._dn);
+  else if(aFilter==='notpaid') filtered=cs.filter(c=>!c._tp&&!c._dn&&!c._ov);
+  else if(aFilter==='overdue') filtered=cs.filter(c=>c._ov);
+  else if(aFilter==='completed') filtered=cs.filter(c=>c._dn);
+  else if(aFilter==='done') filtered=cs.filter(c=>c._pct>=100);
+  // search
   if(q){
     filtered=filtered.filter(c=>
       (c.name||'').toLowerCase().includes(q)||
@@ -885,10 +902,10 @@ function renderCust(){
       (c.phone||'').includes(q)
     );
   }
-  // sort — completed always pushed to bottom
+  // sort — completed to bottom
   filtered.sort((a,b)=>{
-    if(a._dn && !b._dn) return 1;
-    if(!a._dn && b._dn) return -1;
+    if(a._dn&&!b._dn) return 1;
+    if(!a._dn&&b._dn) return -1;
     return (parseInt((b.customerId||'').split('-').pop())||0)-(parseInt((a.customerId||'').split('-').pop())||0);
   });
   // pagination
@@ -909,7 +926,7 @@ function renderCust(){
     grid.innerHTML=slice.map(c=>{
       const paid=c._paid,t=c._t,pn=c._pn,pct=c._pct,ov=c._ov,tp=c._tp,ta=c._ta,dn=c._dn;
       const sid=SI(c.customerId);
-      const pcc=pct>=100?'#22d45e':pct>=50?'#fbbf24':'#f05252';
+      const pcc=pct>=100?'#4f8ef7':pct>=50?'#fbbf24':'#f05252';
       const pbc=pct>=100?'pg':pct>=50?'po':'pr';
       const ln=c.loanNumber||1;
       let bdgC='bpn',bdgT='⏳ Pending';
@@ -921,6 +938,7 @@ function renderCust(){
       const sd=c.date?fmtD(c.date):(c.savedAt?fmtD(new Date(c.savedAt).toISOString().split('T')[0]):'—');
       const ps=gPays(c.customerId).sort((a,b)=>new Date(b.date)-new Date(a.date));
       const pt=(c.paymentType||'monthly')==='weekly'?'W':'M';
+      const ph=c.phone||'';
       return`<div class="cc ${ccC}" id="cc-${sid}">
         <div class="cc-acc"></div>
         <div class="cc-hd">
@@ -943,7 +961,7 @@ function renderCust(){
         <div class="cacts" style="grid-template-columns:repeat(3,1fr)">
           <button class="ca a-w" onclick="openPay('${E(c.customerId)}',${pn})">💰 Pay</button>
           <button class="ca a-b" onclick="openDet('${E(c.customerId)}')">ℹ️ Info</button>
-          <button class="ca a-g" onclick="openCall(${JSON.stringify(c.name||'')},${JSON.stringify(c.phone||'')})">📞 Call</button>
+          <button class="ca a-g" onclick="openCall(${JSON.stringify(c.name||'')},${JSON.stringify(ph)})">📞 Call</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:0 7px 6px">
           ${dn
@@ -959,7 +977,7 @@ function renderCust(){
         <div class="chist" id="h-${sid}">
           <div class="ht">Payment History</div>
           ${ps.length
-            ?ps.map(p=>`<div class="hi"><div><div class="hi-d">${fmtD(p.date)}</div><div class="hi-b">${p.timestamp?new Date(p.timestamp).toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit'}):''} · ${E(p.collectedBy||'—')}</div></div><div class="hi-r"><span class="hi-a">${fmtM(p.amount)}</span><button class="hi-del" onclick="openDelPay('${E(c.customerId)}','${E(p._key)}','${p.date}',${p.amount})">🗑</button></div></div>`).join('')
+            ?ps.map(p=>`<div class="hi"><div><div class="hi-d">${fmtD(p.date)}</div><div class="hi-b">${p.timestamp?new Date(p.timestamp).toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit'}):''}${p.collectedBy?' · '+E(p.collectedBy):''}</div></div><div class="hi-r"><span class="hi-a">${fmtM(p.amount)}</span><button class="hi-del" onclick="openDelPay('${E(c.customerId)}','${E(p._key)}',${p.amount||0})">🗑</button></div></div>`).join('')
             :'<div class="hempty">No payments yet</div>'
           }
           <button class="btn bx bsm bfull" style="margin-top:5px" onclick="tH('${sid}')">✕ Close</button>
@@ -967,7 +985,7 @@ function renderCust(){
       </div>`;
     }).join('');
   }catch(err){
-    console.error('renderCust() card render failed:',err);
+    console.error('renderCust error:',err);
     grid.innerHTML=`<div class="nd" style="grid-column:1/-1"><div class="nd-i">⚠️</div><div class="nd-t">Render error — check console</div></div>`;
   }
   renderPag('custPag',custPage,pages,p=>{
@@ -1152,7 +1170,13 @@ function confirmImport(){
 }
 function cancelImport(){importRows=[];document.getElementById('impSec').classList.remove('on');document.getElementById('impHead').innerHTML='';document.getElementById('impBody').innerHTML='';document.getElementById('impOkB').textContent='0 rows';document.getElementById('impMissB').style.display='none';document.getElementById('impPfxNew').value=''}
 /* ══ CALL ══ */
-function openCall(n,p){if(!p||p==='undefined'){sT('⚠️ No phone');return}cpPh=p;document.getElementById('callName').textContent=n||'Unknown';document.getElementById('callPhone').textContent=p;document.getElementById('callLink').href='tel:'+p;document.getElementById('callLink').textContent='📞 Call '+p;oM('mCall')}
+function openCall(nm,ph){
+  cpPh=ph;
+  document.getElementById('callModalName').textContent=nm||'Unknown';
+  document.getElementById('callModalPhone').textContent=ph||'No phone number';
+  document.getElementById('callModalLink').href='tel:'+ph;
+  oM('mCall');
+}
 function cpPhone(){navigator.clipboard.writeText(cpPh).then(()=>sT('📋 Copied!')).catch(()=>sT('⚠️ Failed'))}
 /* ══ PAY ══ */
 function openPay(id,pend){
@@ -1177,14 +1201,14 @@ function savePay(){
   if(!d){sT('⚠️ Select date');return}
   const c=getCust(apC);
   db.ref('payments/'+SK(apC)).push({customerId:apC,customerName:c?c.name:'',amount:a,date:d,timestamp:Date.now(),collectedBy:CU.name})
-    .then(()=>{cM('mPay');showPayAnim(a);apC=null;}).catch(()=>sT('⚠️ Failed'));
+    .then(()=>{cM('mPay');showPayAnim(a,apC);apC=null;}).catch(()=>sT('⚠️ Failed'));
 }
 /* ══ OVERDUE ══ */
 function openOD(id){odCid=id;const c=getCust(id);document.getElementById('odInfo').textContent=`Mark "${c?c.name:id}" as overdue?`;oM('mOD')}
 function confirmOD(){if(!odCid)return;db.ref('customers/'+SK(odCid)).update({isOverdue:true,overdueAt:Date.now()}).then(()=>{cM('mOD');odCid=null;sT('🔴 Marked Overdue')}).catch(()=>sT('⚠️ Failed'))}
 function rmOD(id){db.ref('customers/'+SK(id)).update({isOverdue:false,overdueAt:null}).then(()=>sT('✅ OD Cleared')).catch(()=>sT('⚠️ Failed'))}
 /* ══ DELETE PAYMENT ══ */
-function openDelPay(id,key,date,amt){dpCid=id;dpKey=key;document.getElementById('delPayInfo').textContent=`Delete ${fmtM(amt)} paid on ${fmtD(date)} for "${(getCust(id)||{}).name||id}"?`;oM('mDelPay')}
+function openDelPay(id,key,amt){dpCid=id;dpKey=key;document.getElementById('delPayInfo').textContent=`Delete ${fmtM(amt)} for "${(getCust(id)||{}).name||id}"?`;oM('mDelPay')}
 function confirmDelPay(){
   if(!dpCid||!dpKey)return;
   const ref=db.ref(`payments/${SK(dpCid)}/${dpKey}`);
