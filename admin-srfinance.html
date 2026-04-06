@@ -924,9 +924,12 @@ function renderCust(){
   }
 
   // sort (push completed to bottom like before; uses _loanCompleted now)
+    // sort — only push completed to bottom when viewing ALL
   filtered.sort((a,b)=>{
-    if(a._loanCompleted && !b._loanCompleted) return 1;
-    if(!a._loanCompleted && b._loanCompleted) return -1;
+    if(aFilter==='all'){
+      if(a._loanCompleted && !b._loanCompleted) return 1;
+      if(!a._loanCompleted && b._loanCompleted) return -1;
+    }
     return (parseInt((b.customerId||'').split('-').pop())||0)-(parseInt((a.customerId||'').split('-').pop())||0);
   });
 
