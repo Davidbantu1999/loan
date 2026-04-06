@@ -246,7 +246,7 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
 .ft[data-f="paid"].on{background:rgba(34,212,94,.08);border-color:rgba(34,212,94,.22);color:#22d45e}
 .ft[data-f="overdue"].on{background:rgba(240,82,82,.08);border-color:rgba(240,82,82,.22);color:#f05252}
 .ft[data-f="completed"].on{background:rgba(34,212,94,.08);border-color:rgba(34,212,94,.22);color:#22d45e}
-.ft[data-f="done"].on{background:rgba(34,212,94,.15);border-color:rgba(34,212,94,.4);color:#22d45e;box-shadow:0 0 8px rgba(34,212,94,.2)}
+.ft[data-f="done"].on{background:rgba(34,212,94,.18);border-color:rgba(34,212,94,.5);color:#22d45e;font-weight:900}
 .ft[data-f="notpaid"].on{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.22);color:#fbbf24}
 .tbar{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 .swrap{position:relative;flex:1;min-width:130px}
@@ -463,6 +463,7 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
   <button class="ntab" onclick="switchTab('customers',this)">👥 Customers</button>
   <button class="ntab" onclick="switchTab('reports',this)">📋 Reports</button>
   <button class="ntab" onclick="switchTab('dellog',this)">🗑 Deleted <span class="nbadge" id="delBadge"></span></button>
+  <button class="ntab" style="color:#f05252;margin-left:auto" onclick="openResetModal()">🔴 Reset All</button>
 </div></div>
 <main class="page">
 <div class="tp on" id="tp-dashboard">
@@ -504,7 +505,7 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
       <button class="ft" data-f="paid" onclick="setF('paid')">✅ Paid Today</button>
       <button class="ft" data-f="overdue" onclick="setF('overdue')">🔴 Overdue</button>
       <button class="ft" data-f="completed" onclick="setF('completed')">🏁 Loan Completed</button>
-      <button class="ft" data-f="done" onclick="setF('done')">✅ Done (100%)</button>
+      <button class="ft" data-f="done" onclick="setF('done')">✅ Done</button>
       <button class="ft" data-f="notpaid" onclick="setF('notpaid')">⏳ Not Paid</button>
     </div>
     <div class="tbar">
@@ -906,9 +907,7 @@ function renderCust(){
   lc.innerHTML=`Showing <b>${start+1}–${Math.min(start+PP,total)}</b> of <b>${total}</b>${aFilter!=='all'?' ('+aFilter+')':''}`;
   try{
     grid.innerHTML=slice.map(c=>{
-      const paid=c._paid,t=c._t,pn=c._pn,pct=c._pct,ov=c._ov,tp=c._tp,ta=c._ta;
-      // ✅ use unified completed flag
-      const dn = c._dn;
+      const paid=c._paid,t=c._t,pn=c._pn,pct=c._pct,ov=c._ov,tp=c._tp,ta=c._ta,dn=c._dn;
       const sid=SI(c.customerId);
       const pcc=pct>=100?'#22d45e':pct>=50?'#fbbf24':'#f05252';
       const pbc=pct>=100?'pg':pct>=50?'po':'pr';
@@ -1405,6 +1404,45 @@ document.addEventListener('keydown',e=>{
     if(document.getElementById('sb').classList.contains('on'))tSB();
   }
 });
+function openResetModal(){
+  if(CU.role!=='admin'){sT('🚫 Only admin can reset data');return;}
+  document.getElementById('resetPinInput').value='';
+  document.getElementById('resetPinErr').style.display='none';
+  oM('mReset');
+  setTimeout(()=>document.getElementById('resetPinInput').focus(),200);
+}
+function confirmReset(){
+  if(CU.role!=='admin'){sT('🚫 Only admin can reset data');return;}
+  const pin=document.getElementById('resetPinInput').value.trim();
+  if(pin!=='2026'){
+    document.getElementById('resetPinErr').style.display='block';
+    document.getElementById('resetPinInput').value='';
+    return;
+  }
+  cM('mReset');
+  Promise.all([
+    db.ref('customers').remove(),
+    db.ref('payments').remove(),
+    db.ref('deletedPayments').remove()
+  ]).then(()=>sT('✅ All data has been reset successfully')).catch(()=>sT('⚠️ Reset failed. Please try again.'));
+}
 </script>
+<div class="modal" id="mReset">
+  <div class="mc" style="text-align:center;max-width:340px">
+    <div class="mb"></div>
+    <div style="font-size:38px;margin-bottom:8px">🔐</div>
+    <div class="mt" style="color:#f05252">Reset All Data</div>
+    <div style="background:rgba(240,82,82,.08);border:1px solid rgba(240,82,82,.18);border-radius:10px;padding:12px;margin-bottom:14px;font-size:10px;color:#f05252;font-weight:700">
+      ⚠️ This will permanently delete ALL customers and payments. This cannot be undone!
+    </div>
+    <div style="font-size:10px;color:var(--t3);margin-bottom:8px;font-weight:700">Enter Admin PIN to confirm:</div>
+    <input type="password" id="resetPinInput" class="mf" inputmode="numeric" maxlength="4" placeholder="Enter 4-digit PIN" style="width:100%;padding:12px;border-radius:9px;border:2px solid rgba(240,82,82,.3);background:var(--s2);color:var(--text);font-size:20px;text-align:center;letter-spacing:8px;font-family:inherit;margin-bottom:12px"/>
+    <div id="resetPinErr" style="color:#f05252;font-size:10px;font-weight:700;margin-bottom:8px;display:none">❌ Wrong PIN. Only Admin can reset.</div>
+    <div class="ma">
+      <button class="btn bd" onclick="confirmReset()">🗑 Delete Everything</button>
+      <button class="btn bx" onclick="cM('mReset');document.getElementById('resetPinInput').value='';document.getElementById('resetPinErr').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
