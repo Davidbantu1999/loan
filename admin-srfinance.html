@@ -768,9 +768,12 @@ function updateStats(){
   const cs=Object.values(AC);
   let pd=0,np=0,od=0,cp=0;
   cs.forEach(c=>{
-    const{dn,ov,tp}=custStatus(c);
-    const isCompleted=dn||String(c.status||'').trim().toLowerCase()==='completed';
-    if(isCompleted)cp++;
+    const paid=calcPaid(c.customerId);
+    const t=Number(c.totalPayable)||0;
+    const dn=t>0&&paid>=t;
+    const ov=!dn&&isOD(c);
+    const tp=!dn&&!ov&&isTdPaid(c.customerId);
+    if(dn)cp++;
     else if(ov)od++;
     else if(tp)pd++;
     else np++;
@@ -817,9 +820,12 @@ function bPie(){
   const cs=Object.values(AC);
   let pd=0,np=0,od=0,cp=0;
   cs.forEach(c=>{
-    const{dn,ov,tp}=custStatus(c);
-    const isCompleted=dn||String(c.status||'').trim().toLowerCase()==='completed';
-    if(isCompleted)cp++;else if(ov)od++;else if(tp)pd++;else np++;
+    const paid=calcPaid(c.customerId);
+    const t=Number(c.totalPayable)||0;
+    const dn=t>0&&paid>=t;
+    const ov=!dn&&isOD(c);
+    const tp=!dn&&!ov&&isTdPaid(c.customerId);
+    if(dn)cp++;else if(ov)od++;else if(tp)pd++;else np++;
   });
   const labels=['Paid Today','Not Paid','Overdue','Loan Completed'],data=[pd,np,od,cp],colors=['#22d45e','#fbbf24','#f05252','#4f8ef7'];
   dCH('pie');const ctx=document.getElementById('cPie').getContext('2d');
@@ -876,87 +882,53 @@ function renderCust(){
   // location filter
   if(aLoc) cs=cs.filter(c=>(c.customerId||'').split('-')[0]===aLoc);
 
-  // compute helper flags + normalized status
-  const ws=cs.map(c=>{
-    const st=custStatus(c);
-    const statusNorm = String(c.status||'').trim().toLowerCase();
-
-    // ✅ single source of truth for "loan completed"
-const loanCompleted = (st.dn === true) || (statusNorm === 'completed') || (statusNorm === 'loan completed') || (c.loanCompleted === true) || (c.isCompleted === true);            // sort
-  
-    return {
-      ...c,
-      _dn: st.dn,
-      _ov: st.ov,
-      _tp: st.tp,
-      _paid: st.paid,
-      _t: st.t,
-      _pn: st.pn,
-      _pct: st.pct,
-      _ta: st.ta,
-
-      _statusNorm: statusNorm,
-      _loanCompleted: loanCompleted
-    };
+  cs=cs.map(c=>{
+    const pd=calcPaid(c.customerId);
+    const t=Number(c.totalPayable)||0;
+    const pct=t>0?Math.min(100,Math.round((pd/t)*100)):0;
+    const dn=t>0&&pd>=t;
+    const ov=!dn&&isOD(c);
+    const tp=isTdPaid(c.customerId);
+    const ta=tdPay(c.customerId);
+    return{...c,_pd:pd,_pn:Math.max(0,t-pd),_pct:pct,_dn:dn,_ov:ov,_tp:tp,_ta:ta,_t:t};
   });
-
-  // filter
-  let filtered;
-  if(aFilter==='loancompleted'){
-    filtered = ws.filter(c => c._loanCompleted === true);
-  } else if(aFilter==='paid'){
-    filtered = ws.filter(c => c._tp === true);
-  } else if(aFilter==='overdue'){
-    filtered = ws.filter(c => c._ov === true);
-  } else if(aFilter==='notpaid'){
-    filtered = ws.filter(c => !c._tp && !c._loanCompleted && !c._ov);
-  } else {
-    filtered = ws;
-  }
-
-  // search filter
-  if(q){
-    filtered=filtered.filter(c=>
-      (c.name||'').toLowerCase().includes(q)||
-      (c.customerId||'').toLowerCase().includes(q)||
-      (c.phone||'').includes(q)
-    );
-  }
-
-  // sort (push completed to bottom like before; uses _loanCompleted now)
-    // sort — only push completed to bottom when viewing ALL
- filtered.sort((a,b)=>{
+  if(aFilter==='paid')cs=cs.filter(c=>c._tp&&!c._dn);
+  else if(aFilter==='notpaid')cs=cs.filter(c=>!c._tp&&!c._dn&&!c._ov);
+  else if(aFilter==='overdue')cs=cs.filter(c=>c._ov);
+  else if(aFilter==='loancompleted')cs=cs.filter(c=>c._dn);
+  if(q)cs=cs.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.customerId||'').toLowerCase().includes(q)||(c.phone||'').includes(q));
+  cs.sort((a,b)=>{
     if(aFilter==='all'){
-      if(a._loanCompleted && !b._loanCompleted) return 1;
-      if(!a._loanCompleted && b._loanCompleted) return -1;
+      if(a._dn&&!b._dn)return 1;
+      if(!a._dn&&b._dn)return -1;
     }
-    return (parseInt((b.customerId||'').split('-').pop())||0)-(parseInt((a.customerId||'').split('-').pop())||0);
+    return(parseInt((b.customerId||'').split('-').pop())||0)-(parseInt((a.customerId||'').split('-').pop())||0);
   });
 
-  // pagination
-  const total=filtered.length;
-  const pages=Math.max(1,Math.ceil(total/PP));
-  if(custPage>pages) custPage=1;
-
-  const start=(custPage-1)*PP;
-  const slice=filtered.slice(start,start+PP);
-
-  if(!slice.length){
+  const total=cs.length;
+  if(!total){
     lc.style.display='none';
     grid.innerHTML=`<div class="nd" style="grid-column:1/-1"><div class="nd-i">👥</div><div class="nd-t">No customers found for "${aFilter}"</div></div>`;
     document.getElementById('custPag').innerHTML='';
     return;
   }
-
+  const pages=Math.max(1,Math.ceil(total/PP));
+  if(custPage>pages) custPage=1;
+  const start=(custPage-1)*PP;
+  const slice=cs.slice(start,start+PP);
   lc.style.display='block';
   lc.innerHTML=`Showing <b>${start+1}–${Math.min(start+PP,total)}</b> of <b>${total}</b>${aFilter!=='all'?' ('+aFilter+')':''}`;
 
   try{
     grid.innerHTML=slice.map(c=>{
-      const{_paid:paid,_t:t,_pn:pn,_pct:pct,_ov:ov,_tp:tp,_ta:ta}=c;
-
-      // ✅ use unified completed flag
-      const dn = (c._loanCompleted === true);
+      const dn=c._dn;
+      const paid=c._pd;
+      const t=c._t;
+      const pn=c._pn;
+      const pct=c._pct;
+      const ov=c._ov;
+      const tp=c._tp;
+      const ta=c._ta;
 
       const sid=SI(c.customerId);
       const pcc=pct>=100?'#22d45e':pct>=50?'#fbbf24':'#f05252';
@@ -992,13 +964,17 @@ const loanCompleted = (st.dn === true) || (statusNorm === 'completed') || (statu
           <div class="cc-row"><span class="cc-rl">📊 Total Payable</span><span class="cc-rv">${fmtM(t)}</span></div>
           <div class="pbw"><div class="pb ${pbc}" style="width:${pct}%"></div></div>
           <div class="pb-p" style="color:${pcc}">${pct}% complete</div>
+          ${dn?`<div style="margin-top:4px;padding:3px 7px;border-radius:6px;background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.25);font-size:9px;font-weight:800;color:#4f8ef7;text-align:center;">✅ Loan Fully Paid</div>`:''}
           ${ta>0?`<div class="cc-td">Today: <b>${fmtM(ta)}</b></div>`:''}
         </div>
 
         <div class="cacts" style="grid-template-columns:repeat(3,1fr)">
-          <button class="ca a-w" onclick="openPay('${E(c.customerId)}',${pn})">💰 Pay</button>
-          <button class="ca a-b" onclick="openDet('${E(c.customerId)}')">ℹ️ Info</button>
-          <button class="ca a-g" onclick="openCall(${JSON.stringify(c.name||'')},${JSON.stringify(c.phone||'')})">📞 Call</button>
+          ${dn
+            ?`<button class="ca a-b bfull" style="grid-column:1/-1" onclick="openDet('${E(c.customerId)}')">✅ Done — View Details</button>`
+            :`<button class="ca a-w" onclick="openPay('${E(c.customerId)}',${pn})">💰 Pay</button>`
+          }
+          ${!dn?`<button class="ca a-b" onclick="openDet('${E(c.customerId)}')">ℹ️ Info</button>`:''}
+          <button class="ca a-p" onclick="openCall(${JSON.stringify(c.name||'')},${JSON.stringify(c.phone||'')})">📞 Call</button>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:0 7px 6px">
