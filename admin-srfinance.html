@@ -471,8 +471,8 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
     <div class="sc c2" onclick="goCust('paid')"><div class="sc-ico">✅</div><div class="sc-v" id="stPaid">0</div><div class="sc-l">Paid Today</div></div>
     <div class="sc c3" onclick="goCust('notpaid')"><div class="sc-ico">⏳</div><div class="sc-v" id="stNotPaid">0</div><div class="sc-l">Not Paid</div></div>
     <div class="sc c4" onclick="goCust('overdue')"><div class="sc-ico">🔴</div><div class="sc-v" id="stOverdue">0</div><div class="sc-l">Overdue</div></div>
-    <div class="sc c5" onclick="goCust('loancompleted')"><div class="sc-ico">🏁</div><div class="sc-v" id="stCompleted">0</div><div class="sc-l">Loan Completed</div></div>
-    <div class="sc c6"><div class="sc-ico">💰</div><div class="sc-v" id="stTodayAmt">₹0</div><div class="sc-l">Today Collected</div></div>
+    <div class="sc c5" onclick="goCust('completed')">
+      <div class="sc c6"><div class="sc-ico">💰</div><div class="sc-v" id="stTodayAmt">₹0</div><div class="sc-l">Today Collected</div></div>
   </div>
   <div class="sect">💵 Collection Summary</div>
   <div class="csg">
@@ -498,12 +498,13 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
   <div class="locsec"><div class="locsec-t">📍 Filter by Location</div><div class="loctabs" id="locTabs"></div></div>
   <div class="ctrl-sec">
     <div class="ctrl-sec-t">🔧 Filter & Search</div>
-    <div class="frow">
-      <button class="ft on" data-f="all" onclick="setF('all')">All</button>
-      <button class="ft" data-f="paid" onclick="setF('paid')">✅ Paid Today</button>
-      <button class="ft" data-f="overdue" onclick="setF('overdue')">🔴 Overdue</button>
-      <button class="ft" data-f="loancompleted" onclick="setF('loancompleted')">🏁 Loan Completed</button>
-      <button class="ft" data-f="notpaid" onclick="setF('notpaid')">⏳ Not Paid</button>
+       <div class="filter-row">
+      <button class="ftab active" data-f="all" onclick="setF('all')">All</button>
+      <button class="ftab" data-f="paid" onclick="setF('paid')">✅ Paid</button>
+      <button class="ftab f-od" data-f="overdue" onclick="setF('overdue')">🔴 Overdue</button>
+      <button class="ftab f-done" data-f="completed" onclick="setF('completed')">🏁 Done</button>
+      <button class="ftab f-warn" data-f="notpaid" onclick="setF('notpaid')">⏳ Not Paid</button>
+    </div>
     </div>
     <div class="tbar">
       <div class="swrap"><span class="sico">🔍</span><input type="text" class="srch" id="srch" placeholder="Search name, ID, phone..." oninput="onSearch()"/></div>
@@ -806,12 +807,11 @@ function bLoc(){const{s,e}=getRng(document.getElementById('locDD').value);const 
 function bLocStat(){const{s,e}=getRng(document.getElementById('locStatDD').value);const locs=PX.length?PX:['ALL'];const pd=[],nd=[];locs.forEach(p=>{let pc=0,nc=0;Object.values(AC).forEach(c=>{if(PX.length&&(c.customerId||'').split('-')[0]!==p)return;const{dn,ov,tp}=custStatus(c);if(dn)return;tp?pc++:nc++;});pd.push(pc);nd.push(nc);});dCH('ls');const ctx=document.getElementById('cLocStat').getContext('2d');CH['ls']=new Chart(ctx,{type:'bar',data:{labels:locs,datasets:[{label:'Paid',data:pd,backgroundColor:'rgba(34,212,94,.4)',borderColor:'#22d45e',borderWidth:2,borderRadius:4},{label:'Not Paid',data:nd,backgroundColor:'rgba(240,82,82,.35)',borderColor:'#f05252',borderWidth:2,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#b8c5d8',font:{size:9,weight:'700'},boxWidth:9},position:'top'},tooltip:{...TT}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#b8c5d8',font:{size:9}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a5568',font:{size:8},stepSize:1}}}}})}
 /* ══ NAV ══ */
 function goCust(f){
-  if(f==='completed')f='loancompleted';
   aFilter=f;aLoc='';custPage=1;
   switchTab('customers');
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.ntab')[1].classList.add('on');
-  document.querySelectorAll('.ft').forEach(t=>t.classList.toggle('on',t.dataset.f===f));
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.toggle('active',t.dataset.f===f));
   renderLocTabs();renderCust();
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -829,8 +829,11 @@ function renderLocTabs(){
     wrap.appendChild(b);
   });
 }
-function setF(f){aFilter=f;custPage=1;document.querySelectorAll('.ft').forEach(t=>t.classList.toggle('on',t.dataset.f===f));renderCust()}
-function onSearch(){custPage=1;renderCust()}
+function setF(f){
+  aFilter=f;
+  document.querySelectorAll('.ftab').forEach(t=>t.classList.toggle('active',t.dataset.f===f));
+  renderCust();
+}function onSearch(){custPage=1;renderCust()}
 /* ══ RENDER CUSTOMERS ══ */
 function renderCust(){
   const grid=document.getElementById('custGrid');
@@ -846,38 +849,23 @@ function renderCust(){
   // location filter
   if(aLoc) cs=cs.filter(c=>(c.customerId||'').split('-')[0]===aLoc);
   // compute helper flags + normalized status
-  const ws=cs.map(c=>{
-    const st=custStatus(c);
-    const statusNorm = String(c.status||'').trim().toLowerCase();
-    // ✅ single source of truth for "loan completed"
-    const loanCompleted = (st.dn === true) || (statusNorm === 'completed');
-    return {
-      ...c,
-      _dn: st.dn,
-      _ov: st.ov,
-      _tp: st.tp,
-      _paid: st.paid,
-      _t: st.t,
-      _pn: st.pn,
-      _pct: st.pct,
-      _ta: st.ta,
-      _statusNorm: statusNorm,
-      _loanCompleted: loanCompleted
-    };
+   cs=cs.map(c=>{
+    const pd=gPaid(c.customerId);const t=c.totalPayable||0;
+    const pct=t>0?Math.min(100,Math.round((pd/t)*100)):0;
+    const dn=t>0&&pd>=t;
+    const ov=!dn&&isOD(c);
+    const tp=isTodayPaid(c.customerId);
+    const ta=getTodayPay(c.customerId);
+    let st='pending';
+    if(dn)st='completed';else if(ov)st='overdue';else if(tp)st='paid';
+    return{...c,_pd:pd,_pn:Math.max(0,t-pd),_pct:pct,_dn:dn,_ov:ov,_tp:tp,_ta:ta,_st:st};
   });
   // filter
-  let filtered;
-  if(aFilter==='loancompleted'){
-    filtered = ws.filter(c => c._loanCompleted === true);
-  } else if(aFilter==='paid'){
-    filtered = ws.filter(c => c._tp === true);
-  } else if(aFilter==='overdue'){
-    filtered = ws.filter(c => c._ov === true);
-  } else if(aFilter==='notpaid'){
-    filtered = ws.filter(c => !c._tp && !c._loanCompleted && !c._ov);
-  } else {
-    filtered = ws;
-  }
+  let filtered=cs;
+  if(aFilter==='paid')filtered=cs.filter(c=>c._tp&&!c._dn);
+  else if(aFilter==='notpaid')filtered=cs.filter(c=>!c._tp&&!c._dn&&!c._ov);
+  else if(aFilter==='overdue')filtered=cs.filter(c=>c._ov);
+  else if(aFilter==='completed')filtered=cs.filter(c=>c._dn);
   // search filter
   if(q){
     filtered=filtered.filter(c=>
@@ -886,10 +874,10 @@ function renderCust(){
       (c.phone||'').includes(q)
     );
   }
-  // sort (push completed to bottom like before; uses _loanCompleted now)
+  // sort — completed always pushed to bottom
   filtered.sort((a,b)=>{
-    if(a._loanCompleted && !b._loanCompleted) return 1;
-    if(!a._loanCompleted && b._loanCompleted) return -1;
+    if(a._dn && !b._dn) return 1;
+    if(!a._dn && b._dn) return -1;
     return (parseInt((b.customerId||'').split('-').pop())||0)-(parseInt((a.customerId||'').split('-').pop())||0);
   });
   // pagination
@@ -910,7 +898,7 @@ function renderCust(){
     grid.innerHTML=slice.map(c=>{
       const{_paid:paid,_t:t,_pn:pn,_pct:pct,_ov:ov,_tp:tp,_ta:ta}=c;
       // ✅ use unified completed flag
-      const dn = (c._loanCompleted === true);
+      const dn = c._dn;
       const sid=SI(c.customerId);
       const pcc=pct>=100?'#22d45e':pct>=50?'#fbbf24':'#f05252';
       const pbc=pct>=100?'pg':pct>=50?'po':'pr';
