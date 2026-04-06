@@ -882,8 +882,8 @@ function renderCust(){
     const statusNorm = String(c.status||'').trim().toLowerCase();
 
     // ✅ single source of truth for "loan completed"
-    const loanCompleted = (st.dn === true) || (statusNorm === 'completed');
-
+const loanCompleted = (st.dn === true) || (statusNorm === 'completed') || (statusNorm === 'loan completed') || (c.loanCompleted === true) || (c.isCompleted === true);            // sort
+  
     return {
       ...c,
       _dn: st.dn,
@@ -925,7 +925,7 @@ function renderCust(){
 
   // sort (push completed to bottom like before; uses _loanCompleted now)
     // sort — only push completed to bottom when viewing ALL
-  filtered.sort((a,b)=>{
+ filtered.sort((a,b)=>{
     if(aFilter==='all'){
       if(a._loanCompleted && !b._loanCompleted) return 1;
       if(!a._loanCompleted && b._loanCompleted) return -1;
