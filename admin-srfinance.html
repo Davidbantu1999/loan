@@ -568,11 +568,11 @@ header{position:sticky;top:0;z-index:80;background:rgba(4,8,15,.96);border-botto
   <div class="mc" style="text-align:center;max-width:320px">
     <div class="mb"></div>
     <div style="font-size:40px;margin-bottom:8px">📞</div>
-    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px" id="callName">—</div>
+    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px" id="callName">Unknown</div>
     <div style="font-size:11px;color:var(--t3);margin-bottom:14px">Customer Phone Number</div>
     <div style="background:linear-gradient(135deg,rgba(34,212,94,.15),rgba(34,212,94,.05));border:2px solid rgba(34,212,94,.35);border-radius:14px;padding:16px 20px;margin-bottom:14px">
       <div style="font-size:9px;color:#22d45e;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">📱 Phone Number</div>
-      <div style="font-size:26px;font-weight:900;color:#22d45e;letter-spacing:2px;font-variant-numeric:tabular-nums" id="callPhone">—</div>
+      <div style="font-size:26px;font-weight:900;color:#22d45e;letter-spacing:2px;font-variant-numeric:tabular-nums" id="callPhone">No phone</div>
     </div>
     <a id="callLink" href="tel:+" style="display:block;background:linear-gradient(135deg,#22d45e,#16a34a);color:#fff;text-decoration:none;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:800;margin-bottom:8px">📞 Tap to Call</a>
     <button class="btn bx bfull" onclick="cM('mCall')">✕ Close</button>
@@ -1153,7 +1153,7 @@ function confirmImport(){
 }
 function cancelImport(){importRows=[];document.getElementById('impSec').classList.remove('on');document.getElementById('impHead').innerHTML='';document.getElementById('impBody').innerHTML='';document.getElementById('impOkB').textContent='0 rows';document.getElementById('impMissB').style.display='none';document.getElementById('impPfxNew').value=''}
 /* ══ CALL ══ */
-function openCall(n,p){if(!p||p==='undefined'){sT('⚠️ No phone');return}cpPh=p;document.getElementById('callName').textContent=n||'Unknown';document.getElementById('callPhone').textContent=p||'No phone';document.getElementById('callLink').href='tel:'+p;document.getElementById('callLink').textContent='📞 Call '+p;oM('mCall')}
+function openCall(n,p){if(!p||p==='undefined'){sT('⚠️ No phone');return}cpPh=p;document.getElementById('callName').textContent=n||'Unknown';document.getElementById('callPhone').textContent=p;document.getElementById('callLink').href='tel:'+p;document.getElementById('callLink').textContent='📞 Call '+p;oM('mCall')}
 function cpPhone(){navigator.clipboard.writeText(cpPh).then(()=>sT('📋 Copied!')).catch(()=>sT('⚠️ Failed'))}
 /* ══ PAY ══ */
 function openPay(id,pend){
