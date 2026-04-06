@@ -705,7 +705,8 @@ function custStatus(c){
   const paid=calcPaid(c.customerId);
   const pn=Math.max(0,t-paid);
   const pct=t>0?Math.min(100,Math.round(paid/t*100)):0;
-  const dn=t>0&&paid>=t;
+  const statusNormC=String(c.status||'').trim().toLowerCase();
+  const dn=(t>0&&paid>=t)||statusNormC==='completed';
   const ov=!dn&&isOD(c);
   const tp=!dn&&!ov&&isTdPaid(c.customerId);
   const ta=tdPay(c.customerId);
@@ -715,6 +716,7 @@ function isOD(c){
   if(!c)return false;
   const t=Number(c.totalPayable)||0;
   if(t>0&&calcPaid(c.customerId)>=t)return false;
+  if(String(c.status||'').trim().toLowerCase()==='completed')return false;
   if(c.isOverdue===true)return true;
   if(t<=0)return false;
   const ps=gPays(c.customerId);
@@ -882,7 +884,9 @@ function renderCust(){
     const statusNorm = String(c.status||'').trim().toLowerCase();
 
     // ✅ single source of truth for "loan completed"
-    const loanCompleted = (st.dn === true) || (statusNorm === 'completed');
+    const totalPay=Number(c.totalPayable)||0;
+    const stPaid=st.paid||0;
+    const loanCompleted=(st.dn===true)||(statusNorm==='completed')||(totalPay>0&&stPaid>=totalPay)||(st.pct>=100);
 
     return {
       ...c,
@@ -923,10 +927,12 @@ function renderCust(){
     );
   }
 
-  // sort (push completed to bottom like before; uses _loanCompleted now)
+  // sort (push completed to bottom only when viewing all)
   filtered.sort((a,b)=>{
-    if(a._loanCompleted && !b._loanCompleted) return 1;
-    if(!a._loanCompleted && b._loanCompleted) return -1;
+    if(aFilter==='all'){
+      if(a._loanCompleted && !b._loanCompleted) return 1;
+      if(!a._loanCompleted && b._loanCompleted) return -1;
+    }
     return (parseInt((b.customerId||'').split('-').pop())||0)-(parseInt((a.customerId||'').split('-').pop())||0);
   });
 
@@ -989,6 +995,7 @@ function renderCust(){
           <div class="cc-row"><span class="cc-rl">📊 Total Payable</span><span class="cc-rv">${fmtM(t)}</span></div>
           <div class="pbw"><div class="pb ${pbc}" style="width:${pct}%"></div></div>
           <div class="pb-p" style="color:${pcc}">${pct}% complete</div>
+          ${dn?`<div style="margin-top:4px;padding:3px 8px;border-radius:6px;background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.25);font-size:9px;font-weight:800;color:#4f8ef7;text-align:center;">✅ Loan Fully Paid</div>`:''}
           ${ta>0?`<div class="cc-td">Today: <b>${fmtM(ta)}</b></div>`:''}
         </div>
 
@@ -1214,8 +1221,8 @@ function confirmImport(){
 function cancelImport(){importRows=[];document.getElementById('impSec').classList.remove('on');document.getElementById('impHead').innerHTML='';document.getElementById('impBody').innerHTML='';document.getElementById('impOkB').textContent='0 rows';document.getElementById('impMissB').style.display='none';document.getElementById('impPfxNew').value=''}
 
 /* ══ CALL ══ */
-function openCall(n,p){if(!p||p==='undefined'){sT('⚠️ No phone');return}cpPh=p;document.getElementById('callName').textContent=n||'Customer';document.getElementById('callNum').textContent=p;document.getElementById('callLink').href='tel:'+p;oM('mCall')}
-function cpPhone(){navigator.clipboard.writeText(cpPh).then(()=>sT('📋 Copied!')).catch(()=>sT('⚠️ Failed'))}
+function openCall(n,p){document.getElementById('callName').textContent=n||'Customer';document.getElementById('callNum').textContent=p||'No phone';const link=document.getElementById('callLink');if(link)link.href='tel:'+(p||'');oM('mCall')}
+function cpPhone(){const ph=document.getElementById('callNum').textContent;if(ph&&navigator.clipboard){navigator.clipboard.writeText(ph).then(()=>sT('📋 Phone copied!')).catch(()=>sT('📋 '+ph))}else{sT('📋 '+ph)}}
 
 /* ══ PAY ══ */
 function openPay(id,pend){
