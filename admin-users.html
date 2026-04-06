@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>SR Finance — Admin Users</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    :root{
+      --bg:#060f17;--surface:#0d1a24;--surface2:#111e2a;--surface3:#162330;
+      --blue:#3b82f6;--blue2:#2563eb;--blue-dim:rgba(59,130,246,.12);--blue-border:rgba(59,130,246,.25);
+      --green:#22c55e;--green-dim:rgba(34,197,94,.12);--green-border:rgba(34,197,94,.2);
+      --red:#ef4444;--red-dim:rgba(239,68,68,.1);--red-border:rgba(239,68,68,.2);
+      --warn:#f59e0b;--warn-dim:rgba(245,158,11,.1);--warn-border:rgba(245,158,11,.2);
+      --purple:#a78bfa;--purple-dim:rgba(167,139,250,.1);--purple-border:rgba(167,139,250,.2);
+      --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+      --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.04);
+      --shadow:0 4px 20px rgba(0,0,0,.4);--shadow2:0 2px 10px rgba(0,0,0,.3)
+    }
+    html,body{height:100%;background:var(--bg)}
+    body{color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;font-size:14px;padding-bottom:40px}
+    ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+    /* HEADER */
+    header{background:rgba(6,15,23,.97);border-bottom:1px solid var(--border);padding:11px 16px;backdrop-filter:blur(12px);position:sticky;top:0;z-index:80}
+    .hdr{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px}
+    .hdr-logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--warn),#d97706);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:13px;flex-shrink:0}
+    .hdr-brand{flex:1;min-width:0}
+    .hdr-brand h1{font-size:14px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hdr-brand p{font-size:10px;color:var(--text3)}
+    .hdr-actions{display:flex;gap:6px;flex-shrink:0}
+    .hbtn{padding:7px 11px;border-radius:8px;border:none;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
+    .hbtn:active{transform:scale(.95)}
+    .hbtn.blue{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)}
+    .hbtn.red{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+
+    /* PAGE */
+    .page{max-width:960px;margin:16px auto;padding:0 14px}
+
+    /* STATS */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+    .sc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;box-shadow:var(--shadow2)}
+    .sv{font-size:26px;font-weight:800;margin-bottom:3px}
+    .sl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+    .sv.blue{color:var(--blue)}.sv.green{color:var(--green)}.sv.warn{color:var(--warn)}
+
+    /* TOOLBAR */
+    .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+    .toolbar-title{font-size:15px;font-weight:800;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .srch-wrap{position:relative;flex:1;min-width:160px;max-width:280px}
+    .srch{width:100%;padding:9px 12px 9px 34px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:12px;font-family:inherit}
+    .srch:focus{outline:none;border-color:var(--blue)}.srch::placeholder{color:var(--text3)}
+    .srch-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none}
+    .add-btn{padding:9px 14px;border-radius:9px;border:none;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 2px 10px rgba(59,130,246,.3);flex-shrink:0}
+    .add-btn:active{transform:scale(.97)}
+
+    /* CUSTOM FIELDS BAR */
+    .cf-bar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:16px;box-shadow:var(--shadow2)}
+    .cf-bar-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+    .cf-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+    .cf-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;background:var(--purple-dim);border:1px solid var(--purple-border);font-size:11px;font-weight:600;color:var(--purple)}
+    .cf-tag-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:13px;line-height:1;padding:0;display:flex;align-items:center}
+    .cf-add-row{display:flex;gap:6px}
+    .cf-inp{flex:1;padding:8px 11px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:12px;font-family:inherit;min-height:36px}
+    .cf-inp:focus{outline:none;border-color:var(--purple)}
+    .cf-add-btn{padding:8px 12px;border-radius:8px;border:none;background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple-border);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+    .cf-add-btn:active{transform:scale(.96)}
+
+    /* USER CARDS GRID */
+    .cards-grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:560px){.cards-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(min-width:860px){.cards-grid{grid-template-columns:repeat(3,1fr)}}
+
+    /* USER CARD */
+    .uc{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow2);transition:all .2s}
+    .uc-head{padding:14px 14px 10px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid var(--border2)}
+    .uc-av{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;flex-shrink:0}
+    .av-blue{background:linear-gradient(135deg,var(--blue),var(--blue2))}
+    .av-warn{background:linear-gradient(135deg,var(--warn),#d97706)}
+    .uc-info{flex:1;min-width:0}
+    .uc-name{font-size:14px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .uc-id{font-size:10px;color:var(--blue);font-weight:700;margin-top:2px}
+    .uc-badge{padding:3px 8px;border-radius:6px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0;white-space:nowrap}
+    .badge-staff{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)}
+    .badge-admin{background:var(--warn-dim);color:var(--warn);border:1px solid var(--warn-border)}
+
+    /* CARD BODY — detail rows */
+    .uc-body{padding:10px 14px}
+    .uc-row{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:12px}
+    .uc-row+.uc-row{border-top:1px solid var(--border2)}
+    .uc-row-icon{font-size:13px;flex-shrink:0;width:18px;text-align:center;margin-top:1px}
+    .uc-row-label{font-size:10px;color:var(--text3);font-weight:700;white-space:nowrap;min-width:50px}
+    .uc-row-val{color:var(--text);font-weight:600;word-break:break-word;flex:1}
+    .uc-row-val a{color:var(--green);text-decoration:none;font-weight:700}
+    .uc-row-val.pwd{color:var(--text3);font-family:monospace;background:var(--surface2);padding:2px 7px;border-radius:5px;font-size:11px}
+
+    /* CUSTOM FIELD ROWS */
+    .uc-cf-section{padding:8px 14px;border-top:1px solid var(--border2);background:var(--surface2)}
+    .uc-cf-title{font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+    .uc-cf-row{display:flex;align-items:center;gap:6px;font-size:11px;padding:3px 0}
+    .uc-cf-row+.uc-cf-row{border-top:1px solid var(--border2)}
+    .uc-cf-label{color:var(--purple);font-weight:700;min-width:60px;white-space:nowrap}
+    .uc-cf-val{color:var(--text2);flex:1;word-break:break-word}
+
+    /* CARD FOOTER */
+    .uc-foot{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px}
+    .uf-btn{padding:7px 8px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px}
+    .uf-btn:active{transform:scale(.95)}
+    .uf-btn.edit{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)}
+    .uf-btn.del{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:40px 20px;color:var(--text3);background:var(--surface);border-radius:14px;border:1px solid var(--border)}
+    .empty-icon{font-size:36px;margin-bottom:8px}
+    .empty-txt{font-size:13px}
+
+    /* MODAL */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}
+    .mc{width:100%;max-width:480px;background:var(--surface);border-radius:18px;padding:20px 18px 24px;border:1px solid var(--border);max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.7);animation:slideUp .22s ease}
+    @keyframes slideUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .mhd{width:32px;height:3px;background:var(--border);border-radius:2px;margin:0 auto 14px}
+    .mt2{font-size:16px;font-weight:800;color:var(--text);margin-bottom:14px;text-align:center}
+    .mfield{margin-bottom:11px}
+    .mfield label{display:block;font-size:10px;font-weight:700;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+    .mfield input,.mfield select,.mfield textarea{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;min-height:42px;transition:border .15s}
+    .mfield input:focus,.mfield select:focus,.mfield textarea:focus{outline:none;border-color:var(--blue)}
+    .mfield input::placeholder,.mfield textarea::placeholder{color:var(--text3);font-size:12px}
+    .mfield textarea{min-height:60px;resize:vertical}
+    .opt-lbl{font-size:9px;color:var(--text3);font-weight:500;margin-left:4px;text-transform:none;letter-spacing:0}
+    .pw-wrap2{position:relative}.pw-wrap2 input{padding-right:42px}
+    .pw-eye2{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px}
+    .cf-modal-section{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px;margin-bottom:11px}
+    .cf-modal-title{font-size:10px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+    .ma{display:flex;gap:8px;margin-top:14px}
+    .btn{border:none;cursor:pointer;font-weight:700;border-radius:10px;padding:11px 14px;font-family:inherit;font-size:13px;transition:all .15s;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:1}.btn:active{transform:scale(.97)}
+    .bp{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}
+    .bg2{background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
+    .bd2{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);color:var(--text);padding:9px 18px;border-radius:10px;font-size:12px;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow)}
+    .toast.show{opacity:1}
+    @media(max-width:400px){.stats{grid-template-columns:1fr 1fr}.sc:last-child{grid-column:1/-1}.hdr-actions .hbtn.blue{display:none}}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <div class="hdr-logo">SF</div>
+    <div class="hdr-brand">
+      <h1>Admin — User Management</h1>
+      <p id="hdrSub">SR Finance</p>
+    </div>
+    <div class="hdr-actions">
+      <button class="hbtn blue" onclick="window.location.href='money-collection.html'">💰 Collection</button>
+      <button class="hbtn red" onclick="doLogout()">🚪 Logout</button>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="sc"><div class="sv blue" id="stTotal">0</div><div class="sl">Total Users</div></div>
+    <div class="sc"><div class="sv green" id="stStaff">0</div><div class="sl">Staff</div></div>
+    <div class="sc"><div class="sv warn" id="stFields">0</div><div class="sl">Custom Fields</div></div>
+  </div>
+
+  <!-- Custom Fields Bar -->
+  <div class="cf-bar">
+    <div class="cf-bar-title">🔧 Custom Fields <span style="font-size:9px;color:var(--text3);font-weight:500;text-transform:none">(optional extra info shown on each user card)</span></div>
+    <div class="cf-tags" id="cfTags"><span style="font-size:11px;color:var(--text3)">No custom fields yet</span></div>
+    <div class="cf-add-row">
+      <input type="text" class="cf-inp" id="cfInp" placeholder="e.g. Area, Vehicle No, Aadhar, NIC..." maxlength="30"/>
+      <button class="cf-add-btn" onclick="addCF()">+ Add Field</button>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-title">👥 Users</div>
+    <div class="srch-wrap">
+      <span class="srch-icon">🔍</span>
+      <input type="text" class="srch" id="srch" placeholder="Search..." oninput="renderCards()"/>
+    </div>
+    <button class="add-btn" onclick="openAdd()">+ Add User</button>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards-grid" id="cardsGrid"></div>
+
+</main>
+
+<!-- Add/Edit Modal -->
+<div class="modal" id="userM">
+  <div class="mc">
+    <div class="mhd"></div>
+    <div class="mt2" id="mTitle">Add User</div>
+
+    <div class="mfield"><label>Full Name</label><input type="text" id="fName" placeholder="Enter full name"/></div>
+    <div class="mfield"><label>User ID <span class="opt-lbl">(auto-generated if blank)</span></label><input type="text" id="fId" placeholder="e.g. user04"/></div>
+    <div class="mfield"><label>Password</label><div class="pw-wrap2"><input type="password" id="fPwd" placeholder="Set password"/><button class="pw-eye2" onclick="toggleMPw()">👁</button></div></div>
+    <div class="mfield"><label>Role</label>
+      <select id="fRole">
+        <option value="user">Staff / Collector</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="mfield"><label>Phone <span class="opt-lbl">(optional)</span></label><input type="tel" id="fPhone" placeholder="Phone number"/></div>
+    <div class="mfield"><label>Address <span class="opt-lbl">(optional)</span></label><input type="text" id="fAddr" placeholder="City, State"/></div>
+    <div class="mfield"><label>Email <span class="opt-lbl">(optional)</span></label><input type="email" id="fEmail" placeholder="Email address"/></div>
+    <div class="mfield"><label>Note <span class="opt-lbl">(optional)</span></label><textarea id="fNote" placeholder="Any notes about this user..."></textarea></div>
+
+    <!-- Custom fields injected here -->
+    <div id="cfModalWrap"></div>
+
+    <div class="ma">
+      <button class="btn bg2" onclick="cM('userM')">Cancel</button>
+      <button class="btn bp" id="saveBtnLbl" onclick="saveUser()">✅ Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal" id="delM">
+  <div class="mc" style="text-align:center;max-width:340px">
+    <div class="mhd"></div>
+    <div style="font-size:36px;margin-bottom:8px">🗑</div>
+    <div class="mt2">Delete User?</div>
+    <p id="delInfo" style="color:var(--text3);font-size:13px;margin-bottom:14px"></p>
+    <div class="ma">
+      <button class="btn bg2" onclick="cM('delM')">Cancel</button>
+      <button class="btn bd2" onclick="confirmDel()">🗑 Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ── AUTH GUARD ── */
+  const _u=localStorage.getItem('srUser');
+  if(!_u){window.location.href='login.html'}
+  const CU=_u?JSON.parse(_u):{};
+  if(CU.role!=='admin'){window.location.href='money-collection.html'}
+  document.getElementById('hdrSub').textContent='Logged in as '+CU.name;
+  function doLogout(){localStorage.removeItem('srUser');window.location.href='login.html'}
+
+  /* ── STATE ── */
+  let users=[];
+  let customFields=[];
+  let editId=null;
+  let delId=null;
+
+  const DEFAULT_USERS=[
+    {id:'user01',name:'Ravi Kumar', password:'ravi123',  phone:'9876543210',address:'Chennai, TN',   email:'',note:'',role:'user',customFields:{}},
+    {id:'user02',name:'Suresh M',   password:'suresh123',phone:'9123456780',address:'Madurai, TN',   email:'',note:'',role:'user',customFields:{}},
+    {id:'user03',name:'Priya S',    password:'priya123', phone:'9988776655',address:'Coimbatore, TN',email:'',note:'',role:'user',customFields:{}}
+  ];
+
+  /* ── LOAD ── */
+  function load(){
+    const su=localStorage.getItem('srUsers');
+    users=su?JSON.parse(su):[...DEFAULT_USERS];
+    if(!su)saveUsers();
+    const sf=localStorage.getItem('srCustomFields');
+    customFields=sf?JSON.parse(sf):[];
+    renderAll();
+  }
+
+  function saveUsers(){localStorage.setItem('srUsers',JSON.stringify(users))}
+  function saveCF(){localStorage.setItem('srCustomFields',JSON.stringify(customFields))}
+
+  function renderAll(){renderCards();renderCFTags();updateStats()}
+
+  function updateStats(){
+    document.getElementById('stTotal').textContent=users.length;
+    document.getElementById('stStaff').textContent=users.filter(u=>u.role==='user').length;
+    document.getElementById('stFields').textContent=customFields.length;
+  }
+
+  /* ── CUSTOM FIELDS ── */
+  function renderCFTags(){
+    const wrap=document.getElementById('cfTags');
+    if(!customFields.length){wrap.innerHTML='<span style="font-size:11px;color:var(--text3)">No custom fields yet</span>';return}
+    wrap.innerHTML=customFields.map(f=>`
+      <div class="cf-tag">
+        <span>${E(f)}</span>
+        <button class="cf-tag-del" onclick="deleteCF('${E(f)}')">✕</button>
+      </div>`).join('');
+  }
+
+  function addCF(){
+    const inp=document.getElementById('cfInp');
+    const val=inp.value.trim();
+    if(!val){sT('⚠️ Enter field name');return}
+    if(customFields.includes(val)){sT('⚠️ Already exists');return}
+    customFields.push(val);inp.value='';
+    saveCF();renderAll();sT(`✅ Field "${val}" added`);
+  }
+
+  function deleteCF(f){
+    if(!confirm(`Remove field "${f}"? It will be removed from all users.`))return;
+    customFields=customFields.filter(x=>x!==f);
+    users=users.map(u=>{const cf={...(u.customFields||{})};delete cf[f];return{...u,customFields:cf}});
+    saveCF();saveUsers();renderAll();sT(`🗑 "${f}" removed`);
+  }
+
+  /* ── RENDER USER CARDS ── */
+  function renderCards(){
+    const q=(document.getElementById('srch').value||'').trim().toLowerCase();
+    let list=users;
+    if(q)list=list.filter(u=>(u.name||'').toLowerCase().includes(q)||(u.id||'').toLowerCase().includes(q)||(u.phone||'').includes(q));
+    const grid=document.getElementById('cardsGrid');
+    if(!list.length){
+      grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">👥</div><div class="empty-txt">No users found</div></div>`;
+      return;
+    }
+    grid.innerHTML=list.map(u=>{
+      const av=initials(u.name);
+      const avCls=u.role==='admin'?'av-warn':'av-blue';
+      const badgeCls=u.role==='admin'?'badge-admin':'badge-staff';
+      const badgeLbl=u.role==='admin'?'Admin':'Staff';
+
+      // Core detail rows
+      let rows='';
+      if(u.phone)rows+=`<div class="uc-row"><span class="uc-row-icon">📞</span><span class="uc-row-label">Phone</span><span class="uc-row-val"><a href="tel:${E(u.phone)}">${E(u.phone)}</a></span></div>`;
+      if(u.address)rows+=`<div class="uc-row"><span class="uc-row-icon">📍</span><span class="uc-row-label">Address</span><span class="uc-row-val">${E(u.address)}</span></div>`;
+      if(u.email)rows+=`<div class="uc-row"><span class="uc-row-icon">✉️</span><span class="uc-row-label">Email</span><span class="uc-row-val"><a href="mailto:${E(u.email)}">${E(u.email)}</a></span></div>`;
+      rows+=`<div class="uc-row"><span class="uc-row-icon">🔑</span><span class="uc-row-label">Password</span><span class="uc-row-val pwd">${E(u.password||'—')}</span></div>`;
+      if(u.note)rows+=`<div class="uc-row"><span class="uc-row-icon">📝</span><span class="uc-row-label">Note</span><span class="uc-row-val">${E(u.note)}</span></div>`;
+
+      // Custom fields section
+      const cf=u.customFields||{};
+      const cfKeys=customFields.filter(f=>cf[f]);
+      let cfSection='';
+      if(cfKeys.length){
+        cfSection=`<div class="uc-cf-section">
+          <div class="uc-cf-title">Custom Fields</div>
+          ${cfKeys.map(f=>`<div class="uc-cf-row"><span class="uc-cf-label">${E(f)}</span><span class="uc-cf-val">${E(cf[f])}</span></div>`).join('')}
+        </div>`;
+      }
+
+      return`<div class="uc">
+        <div class="uc-head">
+          <div class="uc-av ${avCls}">${av}</div>
+          <div class="uc-info">
+            <div class="uc-name">${E(u.name)}</div>
+            <div class="uc-id">${E(u.id)}</div>
+          </div>
+          <span class="uc-badge ${badgeCls}">${badgeLbl}</span>
+        </div>
+        <div class="uc-body">${rows||'<div style="color:var(--text3);font-size:12px;padding:4px 0">No details added</div>'}</div>
+        ${cfSection}
+        <div class="uc-foot">
+          <button class="uf-btn edit" onclick="openEdit('${E(u.id)}')">✏️ Edit</button>
+          <button class="uf-btn del" onclick="openDel('${E(u.id)}')">🗑 Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ── ADD USER ── */
+  function openAdd(){
+    editId=null;
+    document.getElementById('mTitle').textContent='➕ Add User';
+    document.getElementById('fName').value='';
+    document.getElementById('fId').value='';
+    document.getElementById('fId').disabled=false;
+    document.getElementById('fPwd').value='';
+    document.getElementById('fPhone').value='';
+    document.getElementById('fAddr').value='';
+    document.getElementById('fEmail').value='';
+    document.getElementById('fNote').value='';
+    document.getElementById('fRole').value='user';
+    document.getElementById('fPwd').type='password';
+    buildCFModal(null);
+    document.getElementById('saveBtnLbl').textContent='✅ Add User';
+    document.getElementById('userM').classList.add('show');
+    setTimeout(()=>document.getElementById('fName').focus(),200);
+  }
+
+  /* ── EDIT USER ── */
+  function openEdit(id){
+    const u=users.find(x=>x.id===id);if(!u)return;
+    editId=id;
+    document.getElementById('mTitle').textContent='✏️ Edit User';
+    document.getElementById('fName').value=u.name||'';
+    document.getElementById('fId').value=u.id||'';
+    document.getElementById('fId').disabled=true;
+    document.getElementById('fPwd').value=u.password||'';
+    document.getElementById('fPhone').value=u.phone||'';
+    document.getElementById('fAddr').value=u.address||'';
+    document.getElementById('fEmail').value=u.email||'';
+    document.getElementById('fNote').value=u.note||'';
+    document.getElementById('fRole').value=u.role||'user';
+    document.getElementById('fPwd').type='password';
+    buildCFModal(u.customFields||{});
+    document.getElementById('saveBtnLbl').textContent='✅ Save Changes';
+    document.getElementById('userM').classList.add('show');
+    setTimeout(()=>document.getElementById('fName').focus(),200);
+  }
+
+  function buildCFModal(existing){
+    const wrap=document.getElementById('cfModalWrap');
+    if(!customFields.length){wrap.innerHTML='';return}
+    wrap.innerHTML=`<div class="cf-modal-section">
+      <div class="cf-modal-title">Custom Fields <span style="font-weight:400;font-size:9px;color:var(--text3);">(all optional)</span></div>
+      ${customFields.map(f=>`
+        <div class="mfield" style="margin-bottom:8px">
+          <label>${E(f)}</label>
+          <input type="text" id="cf_${SI(f)}" placeholder="${E(f)}" value="${E(existing?(existing[f]||''):'')}"/>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  /* ── SAVE USER ── */
+  function saveUser(){
+    const name=document.getElementById('fName').value.trim();
+    const pwd=document.getElementById('fPwd').value.trim();
+    const phone=document.getElementById('fPhone').value.trim();
+    const addr=document.getElementById('fAddr').value.trim();
+    const email=document.getElementById('fEmail').value.trim();
+    const note=document.getElementById('fNote').value.trim();
+    const role=document.getElementById('fRole').value;
+    if(!name){sT('⚠️ Enter name');return}
+    if(!pwd){sT('⚠️ Enter password');return}
+    const cfVals={};
+    customFields.forEach(f=>{const el=document.getElementById('cf_'+SI(f));if(el)cfVals[f]=el.value.trim()});
+    if(editId){
+      const idx=users.findIndex(u=>u.id===editId);if(idx<0)return;
+      users[idx]={...users[idx],name,password:pwd,phone,address:addr,email,note,role,customFields:cfVals};
+      sT('✅ User updated!');
+    }else{
+      let newId=document.getElementById('fId').value.trim();
+      if(!newId){const max=users.reduce((m,u)=>{const n=parseInt((u.id||'').replace(/\D/g,''));return n>m?n:m},0);newId=`user${String(max+1).padStart(2,'0')}`}
+      if(users.find(u=>u.id===newId)){sT('⚠️ ID already exists');return}
+      users.push({id:newId,name,password:pwd,phone,address:addr,email,note,role,customFields:cfVals});
+      sT(`✅ "${name}" added (${newId})`);
+    }
+    saveUsers();renderAll();cM('userM');
+  }
+
+  /* ── DELETE ── */
+  function openDel(id){
+    const u=users.find(x=>x.id===id);if(!u)return;
+    delId=id;
+    document.getElementById('delInfo').textContent=`Delete "${u.name}" (${u.id})?`;
+    document.getElementById('delM').classList.add('show');
+  }
+  function confirmDel(){
+    if(!delId)return;
+    users=users.filter(u=>u.id!==delId);
+    saveUsers();renderAll();cM('delM');sT('🗑 User deleted!');delId=null;
+  }
+
+  /* ── UTILS ── */
+  function toggleMPw(){const inp=document.getElementById('fPwd');inp.type=inp.type==='password'?'text':'password'}
+  function initials(n){return(n||'U').split(/\s+/).map(x=>x[0]||'').join('').toUpperCase().slice(0,2)||'U'}
+  function SI(s){return String(s||'').replace(/[^a-zA-Z0-9]/g,'_')}
+  function E(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+  function cM(id){document.getElementById(id).classList.remove('show')}
+  function sT(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+  document.querySelectorAll('.modal').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')})});
+  document.getElementById('cfInp').addEventListener('keydown',e=>{if(e.key==='Enter')addCF()});
+
+  load();
+</script>
+</body>
+</html>

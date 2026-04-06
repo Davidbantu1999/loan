@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>SR Finance — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#060f17;--surface:#0d1a24;--surface2:#111e2a;--surface3:#162330;
+      --blue:#3b82f6;--blue2:#2563eb;
+      --green:#22c55e;--green-dim:rgba(34,197,94,.12);--green-border:rgba(34,197,94,.22);
+      --cyan:#22d3ee;--cyan-dim:rgba(34,211,238,.12);--cyan-border:rgba(34,211,238,.22);
+      --warn:#f59e0b;
+      --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+      --border:rgba(255,255,255,.07);
+      --shadow:0 8px 32px rgba(0,0,0,.5)
+    }
+    html,body{
+      background:var(--bg);
+      background-image:radial-gradient(ellipse at top,rgba(59,130,246,.07) 0%,transparent 60%);
+      color:var(--text);
+      font-family:'Inter',sans-serif;
+      -webkit-font-smoothing:antialiased;
+      min-height:100vh;
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:0;margin:0;
+    }
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+    /* ── Card ── */
+    .card{
+      width:100%;
+      background:var(--surface);
+      padding:26px 18px 24px;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* ── Logo ── */
+    .logo-wrap{text-align:center;margin-bottom:20px}
+    .logo{
+      width:54px;height:54px;border-radius:16px;
+      background:linear-gradient(135deg,var(--blue),var(--blue2));
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;color:#fff;font-size:21px;
+      margin:0 auto 10px;
+      box-shadow:0 6px 20px rgba(59,130,246,.35)
+    }
+    .logo-wrap h1{font-size:19px;font-weight:800;color:var(--text)}
+    .logo-wrap .sub{font-size:11px;color:var(--text3);margin-top:2px}
+
+    /* ── Role tabs ── */
+    .role-tabs{
+      display:grid;grid-template-columns:1fr 1fr;gap:5px;
+      margin-bottom:16px;
+      background:var(--surface2);padding:4px;
+      border-radius:12px;border:1px solid var(--border)
+    }
+    .role-tab{
+      padding:10px 6px;border-radius:9px;border:none;
+      background:transparent;color:var(--text2);
+      font-size:12px;font-weight:700;cursor:pointer;
+      font-family:inherit;transition:all .2s;
+      display:flex;align-items:center;justify-content:center;
+      gap:5px;white-space:nowrap
+    }
+    .role-tab:active{transform:scale(.97)}
+    .role-tab.active.staff-tab{
+      background:linear-gradient(135deg,var(--blue),var(--blue2));
+      color:#fff;box-shadow:0 3px 12px rgba(59,130,246,.3)
+    }
+    .role-tab.active.admin-tab{
+      background:linear-gradient(135deg,var(--warn),#d97706);
+      color:#fff;box-shadow:0 3px 12px rgba(245,158,11,.25)
+    }
+
+    /* ── Fields ── */
+    .field{margin-bottom:13px}
+    .field label{
+      display:block;font-size:10px;font-weight:700;
+      color:var(--text3);margin-bottom:5px;
+      text-transform:uppercase;letter-spacing:.4px
+    }
+    .field select,.field input{
+      width:100%;padding:11px 13px;
+      border-radius:10px;border:1px solid var(--border);
+      background:var(--surface2);color:var(--text);
+      font-size:13px;font-family:inherit;
+      transition:border .15s;min-height:44px
+    }
+    .field select:focus,.field input:focus{
+      outline:none;border-color:var(--blue);background:var(--surface3)
+    }
+    .field select option{background:var(--surface2);color:var(--text)}
+    .field input::placeholder{color:var(--text3);font-size:12px}
+    .pw-wrap{position:relative}
+    .pw-wrap input{padding-right:44px}
+    .pw-eye{
+      position:absolute;right:11px;top:50%;transform:translateY(-50%);
+      background:none;border:none;color:var(--text3);
+      cursor:pointer;font-size:15px;padding:4px;
+      display:flex;align-items:center;justify-content:center
+    }
+
+    /* ── Login button ── */
+    .btn-login{
+      width:100%;padding:13px;border-radius:11px;
+      border:none;color:#fff;
+      font-size:14px;font-weight:800;font-family:inherit;
+      cursor:pointer;transition:all .15s;
+      display:flex;align-items:center;justify-content:center;
+      gap:7px;min-height:48px;white-space:nowrap
+    }
+    .btn-login.staff{
+      background:linear-gradient(135deg,var(--blue),var(--blue2));
+      box-shadow:0 4px 14px rgba(59,130,246,.3)
+    }
+    .btn-login.admin{
+      background:linear-gradient(135deg,var(--warn),#d97706);
+      box-shadow:0 4px 14px rgba(245,158,11,.25)
+    }
+    .btn-login:active{transform:scale(.98)}
+
+    /* ── Spacer + Divider ── */
+    .spacer{height:22px}
+    .divider{
+      display:flex;align-items:center;gap:10px;margin-bottom:13px
+    }
+    .divider span{font-size:10px;color:var(--text3);font-weight:600;white-space:nowrap}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* ── Share / Copy buttons ── */
+    .action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn-action{
+      width:100%;padding:12px 8px;border-radius:11px;border:none;
+      font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      gap:6px;min-height:46px;transition:all .15s;white-space:nowrap
+    }
+    .btn-action:active{transform:scale(.97)}
+    .btn-share{
+      background:var(--green-dim);
+      border:1px solid var(--green-border);
+      color:var(--green)
+    }
+    .btn-share:hover{background:rgba(34,197,94,.22)}
+    .btn-copy{
+      background:var(--cyan-dim);
+      border:1px solid var(--cyan-border);
+      color:var(--cyan)
+    }
+    .btn-copy:hover{background:rgba(34,211,238,.22)}
+
+    /* ── QR Section ── */
+    .qr-section{
+      margin-top:16px;
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:14px;padding:16px 14px 14px;text-align:center
+    }
+    .qr-title{
+      font-size:11px;font-weight:700;color:var(--text3);
+      text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px
+    }
+    #qrcode{display:flex;align-items:center;justify-content:center}
+    #qrcode canvas,#qrcode img{
+      border-radius:10px;
+      border:3px solid rgba(59,130,246,.18);
+      max-width:100%;height:auto
+    }
+
+    /* ── Footer ── */
+    .login-footer{
+      text-align:center;
+      margin-top:auto;
+      padding-top:22px;
+      font-size:10px;color:var(--text3)
+    }
+
+    /* ── Toast ── */
+    .toast{
+      position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+      background:var(--surface);border:1px solid var(--border);
+      color:var(--text);padding:9px 20px;border-radius:10px;
+      font-size:12px;font-weight:600;z-index:999;
+      opacity:0;transition:opacity .3s;pointer-events:none;
+      white-space:nowrap;box-shadow:var(--shadow)
+    }
+    .toast.show{opacity:1}
+
+    /* ── Tablet ── */
+    @media(min-width:600px){
+      .card{
+        max-width:520px;
+        margin:0 auto;
+        border-left:1px solid var(--border);
+        border-right:1px solid var(--border);
+        padding:36px 32px 28px;
+      }
+    }
+    /* ── Desktop ── */
+    @media(min-width:1024px){
+      body{justify-content:center}
+      .card{
+        max-width:440px;
+        min-height:auto;
+        border-radius:20px;
+        border:1px solid var(--border);
+        box-shadow:var(--shadow);
+        padding:32px 28px 26px;
+        margin:40px auto;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Logo -->
+  <div class="logo-wrap">
+    <div class="logo">SF</div>
+    <h1>SR Finance</h1>
+    <div class="sub">Money Collection System</div>
+  </div>
+
+  <!-- Role Tabs -->
+  <div class="role-tabs">
+    <button class="role-tab staff-tab active" id="tabStaff" onclick="setRole('staff')">👤 Staff Login</button>
+    <button class="role-tab admin-tab"        id="tabAdmin" onclick="setRole('admin')">🛡 Admin Login</button>
+  </div>
+
+  <!-- STAFF Fields -->
+  <div id="staffFields">
+    <div class="field">
+      <label>Select Your Name</label>
+      <select id="userDrop" onchange="document.getElementById('staffPwd').value=''">
+        <option value="">⏳ Loading users...</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="staffPwd" placeholder="Enter your password" autocomplete="current-password"/>
+        <button class="pw-eye" onclick="togglePw('staffPwd','eyeS')" id="eyeS">👁</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN Fields -->
+  <div id="adminFields" style="display:none">
+    <div class="field">
+      <label>Admin Username</label>
+      <input type="text" id="adminUser" placeholder="Enter username" autocomplete="username"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="adminPwd" placeholder="Enter password" autocomplete="current-password"/>
+        <button class="pw-eye" onclick="togglePw('adminPwd','eyeA')" id="eyeA">👁</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Button -->
+  <button class="btn-login staff" id="loginBtn" onclick="doLogin()">
+    <span id="loginIcon">🔐</span><span id="loginTxt">Login</span>
+  </button>
+
+  <!-- Spacer -->
+  <div class="spacer"></div>
+
+  <!-- Divider -->
+  <div class="divider"><span>QUICK ACCESS</span></div>
+
+  <!-- Share + Copy -->
+  <div class="action-row">
+    <button class="btn-action btn-share" onclick="shareLoginPage()">📤 Share Login</button>
+    <button class="btn-action btn-copy"  onclick="copyLink()">🔗 Copy Link</button>
+  </div>
+
+  <!-- QR Code -->
+  <div class="qr-section">
+    <div class="qr-title">📱 Scan QR to Open Login Page</div>
+    <div id="qrcode"></div>
+  </div>
+
+  <div class="login-footer">SR Finance © 2025 · Secure Login</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Firebase ──────────────────────────────────────────────────
+  const FC = {
+    apiKey:            "AIzaSyDQlQzo1yVfQOYYgNCrOcqBwLEAXKfZWCE",
+    authDomain:        "loan-17784.firebaseapp.com",
+    databaseURL:       "https://loan-17784-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:         "loan-17784",
+    storageBucket:     "loan-17784.firebasestorage.app",
+    messagingSenderId: "30800980008",
+    appId:             "1:30800980008:web:9869d2e63a61b2e7022d1d"
+  };
+  firebase.initializeApp(FC);
+  const db = firebase.database();
+
+  // ── Constants ─────────────────────────────────────────────────
+  const ADMIN          = { username:'admin', password:'admin@2025', name:'Admin', id:'admin', role:'admin' };
+  const ADMIN_PAGE_URL = 'https://adawebdee.github.io/loan/admin-srfinance.html';
+  const LOGIN_PAGE_URL = 'https://adawebdee.github.io/loan/login.html';
+
+  const DEFAULT_USERS = [
+    { id:'user01', name:'Ravi Kumar',  password:'ravi123',   phone:'9876543210', address:'Chennai, TN',    role:'user' },
+    { id:'user02', name:'Suresh M',    password:'suresh123', phone:'9123456780', address:'Madurai, TN',    role:'user' },
+    { id:'user03', name:'Priya S',     password:'priya123',  phone:'9988776655', address:'Coimbatore, TN', role:'user' }
+  ];
+
+  let currentRole = 'staff';
+  let allUsers    = [];
+
+  // ── Auto-redirect if session exists ──────────────────────────
+  try {
+    const ex = localStorage.getItem('srUser');
+    if (ex) {
+      const eu = JSON.parse(ex);
+      window.location.href = eu.role === 'admin' ? ADMIN_PAGE_URL : 'collection.html';
+    }
+  } catch(e) { localStorage.removeItem('srUser'); }
+
+  // ── Firebase: load + live-listen ─────────────────────────────
+  function loadUsers() {
+    const ref = db.ref('srUsers');
+    ref.once('value').then(snap => {
+      if (!snap.exists()) {
+        const seed = {};
+        DEFAULT_USERS.forEach(u => { seed[u.id] = u; });
+        ref.set(seed).then(startLiveListener);
+      } else {
+        startLiveListener();
+      }
+    }).catch(() => {
+      sT('⚠️ DB error — using local cache');
+      try { allUsers = JSON.parse(localStorage.getItem('srUsers')) || [...DEFAULT_USERS]; }
+      catch(_) { allUsers = [...DEFAULT_USERS]; }
+      buildDrop();
+    });
+  }
+
+  function startLiveListener() {
+    db.ref('srUsers').on('value', snap => {
+      allUsers = [];
+      snap.forEach(child => {
+        allUsers.push({ id: child.key, ...child.val() });
+      });
+      localStorage.setItem('srUsers', JSON.stringify(allUsers));
+      buildDrop();
+    });
+  }
+
+  function buildDrop() {
+    const sel  = document.getElementById('userDrop');
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">-- Choose your name --</option>';
+    allUsers
+      .filter(u => u.role !== 'admin')
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach(u => {
+        const o       = document.createElement('option');
+        o.value       = u.id;
+        o.textContent = u.name;
+        sel.appendChild(o);
+      });
+    if (prev) sel.value = prev;
+  }
+
+  // ── Role switch ───────────────────────────────────────────────
+  function setRole(role) {
+    currentRole   = role;
+    const isAdmin = role === 'admin';
+    document.getElementById('tabStaff').classList.toggle('active', !isAdmin);
+    document.getElementById('tabAdmin').classList.toggle('active',  isAdmin);
+    document.getElementById('staffFields').style.display = isAdmin ? 'none'  : 'block';
+    document.getElementById('adminFields').style.display = isAdmin ? 'block' : 'none';
+    const btn = document.getElementById('loginBtn');
+    btn.className = isAdmin ? 'btn-login admin' : 'btn-login staff';
+    document.getElementById('loginIcon').textContent = isAdmin ? '🛡' : '🔐';
+    document.getElementById('loginTxt').textContent  = isAdmin ? 'Admin Login' : 'Login';
+    document.getElementById('staffPwd').value  = '';
+    document.getElementById('adminPwd').value  = '';
+    document.getElementById('adminUser').value = '';
+    document.getElementById('userDrop').value  = '';
+  }
+
+  // ── Password toggle ───────────────────────────────────────────
+  function togglePw(inputId, btnId) {
+    const inp       = document.getElementById(inputId);
+    const btn       = document.getElementById(btnId);
+    inp.type        = inp.type === 'password' ? 'text' : 'password';
+    btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+  }
+
+  // ── Login ─────────────────────────────────────────────────────
+  function doLogin() {
+    if (currentRole === 'admin') {
+      const uname = (document.getElementById('adminUser').value || '').trim();
+      const pwd   =  document.getElementById('adminPwd').value  || '';
+      if (!uname) { sT('⚠️ Enter username'); return; }
+      if (!pwd)   { sT('⚠️ Enter password'); return; }
+      if (uname !== ADMIN.username || pwd !== ADMIN.password) { sT('❌ Wrong admin credentials'); return; }
+      localStorage.setItem('srUser', JSON.stringify({
+        id: ADMIN.id, name: ADMIN.name, role: 'admin', username: ADMIN.username
+      }));
+      sT('✅ Admin login!');
+      setTimeout(() => { window.location.href = ADMIN_PAGE_URL; }, 500);
+      return;
+    }
+    const uid = document.getElementById('userDrop').value;
+    const pwd = document.getElementById('staffPwd').value;
+    if (!uid) { sT('⚠️ Select your name'); return; }
+    if (!pwd) { sT('⚠️ Enter password');   return; }
+    const user = allUsers.find(u => u.id === uid);
+    if (!user)                 { sT('⚠️ User not found');  return; }
+    if (user.password !== pwd) { sT('❌ Wrong password');  return; }
+    localStorage.setItem('srUser', JSON.stringify({
+      id: user.id, name: user.name, role: 'user',
+      phone: user.phone || '', address: user.address || ''
+    }));
+    sT('✅ Login successful!');
+    setTimeout(() => { window.location.href = 'collection.html'; }, 500);
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  // ── Share ─────────────────────────────────────────────────────
+  function shareLoginPage() {
+    const data = {
+      title: 'SR Finance — Staff Login',
+      text:  '👤 Login to SR Finance Staff Portal',
+      url:   LOGIN_PAGE_URL
+    };
+    if (navigator.share) {
+      navigator.share(data).catch(() => _doCopy());
+    } else {
+      _doCopy();
+    }
+  }
+
+  // ── Copy Link ─────────────────────────────────────────────────
+  function copyLink() { _doCopy(); }
+
+  function _doCopy() {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(LOGIN_PAGE_URL)
+        .then(() => sT('✅ Link copied!'))
+        .catch(_fallback);
+    } else { _fallback(); }
+  }
+
+  function _fallback() {
+    const ta = document.createElement('textarea');
+    ta.value = LOGIN_PAGE_URL;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    sT('✅ Link copied!');
+  }
+
+  // ── QR Code ───────────────────────────────────────────────────
+  function generateQR() {
+    const size = Math.min(window.innerWidth - 80, 160);
+    new QRCode(document.getElementById('qrcode'), {
+      text:         LOGIN_PAGE_URL,
+      width:        size,
+      height:       size,
+      colorDark:    '#3b82f6',
+      colorLight:   '#111e2a',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────
+  function sT(m) {
+    const t = document.getElementById('toast');
+    t.textContent = m;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────
+  loadUsers();
+  generateQR();
+</script>
+</body>
+</html>
