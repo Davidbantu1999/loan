@@ -900,17 +900,16 @@ function hideLoader(){
   ldEl.classList.add('hide');
   setTimeout(function(){ldEl.style.display='none';},450);
 }
-
 /* ══ AUTH ══ */
 var _u=localStorage.getItem('srUser');
 if(!_u){window.location.href='login.html';}
-var CU=_u?JSON.parse(_u):{name:'Admin',role:'admin'};
+var CU=(_u&&_u!=='undefined')?JSON.parse(_u):{name:'Admin',role:'admin'};
 if(CU.role!=='admin'){window.location.href='money-collection.html';}
 document.getElementById('hdrSub').textContent='Admin: '+CU.name;
 function ini(n){return(n||'A').split(/\s+/).map(function(x){return x[0]||'';}).join('').toUpperCase().slice(0,2)||'A';}
 document.getElementById('sbAv').textContent=ini(CU.name);
 document.getElementById('sbName').textContent=CU.name;
-
+  
 /* ══ THEME ══ */
 var isDark=true;
 function applyTheme(dark){
