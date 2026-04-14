@@ -1580,21 +1580,29 @@ function tH(sid){
   if(h.classList.contains('show'))setTimeout(function(){h.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
 }
 
-/* ══ CALL ══ */
-function openCall(nm,ph){
-  cpPh=ph||'';
-  document.getElementById('callName').textContent=nm||'Unknown';
-  document.getElementById('callNum').textContent=ph||'No phone number';
-  document.getElementById('callLink').href='tel:'+(ph||'');
+
+  /* ══ CALL ══ */
+function openCall(nm, ph) {
+  cpPh = ph || '';
+  document.getElementById('callName').textContent = nm || 'Unknown';
+  document.getElementById('callNum').textContent = ph || 'No phone number';
+  document.getElementById('callLink').href = 'tel:' + (ph || '');
   oM('callM');
 }
-function cpPhone(){
-  if(!cpPh)return;
-  navigator.clipboard.writeText(cpPh).then(function(){sT('📋 Copied!');}).catch(function(){
-    var ta=document.createElement('textarea');ta.value=cpPh;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);sT('📋 Copied!');
+function cpPhone() {
+  if (!cpPh) return;
+  navigator.clipboard.writeText(cpPh).then(function () {
+    sT('📋 Copied!');
+  }).catch(function () {
+    var ta = document.createElement('textarea');
+    ta.value = cpPh;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    sT('📋 Copied!');
   });
 }
-
 /* ══ PAY ══ */
 function openPay(id,pend){
   apC=id;apPend=Number(pend)||0;
