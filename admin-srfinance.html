@@ -37,7 +37,7 @@ html,body{min-height:100%;font-family:'Poppins',sans-serif;color:var(--white);ba
 .ld-title{font-size:20px;font-weight:900;color:#bbdefb;font-family:'Montserrat',sans-serif}
 .ld-sub{font-size:12px;color:#9aa8c0}
 .ld-bar-wrap{width:240px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
-.ld-bar{height:100%;width:0;background:linear-gradient(90deg,#42a5f5,#1565c0);border-radius:3px;transition:width .15s linear}
+.ld-bar{height:100%;width:0;background:linear-gradient(90deg,#42a5f5,#1565c0);border-radius:3px;transition:width .3s ease}
 .ld-pct{font-size:14px;font-weight:800;color:#42a5f5}
 
 /* SIDEBAR */
@@ -516,7 +516,8 @@ header{position:sticky;top:0;z-index:80;background:rgba(13,23,41,.97);border-bot
         <option value="custom">Custom Date</option>
       </select>
     </div>
-    <div id="expCustomRow" style="display:none;padding:8px 16px 0;gap:8px;align-items:center;flex-wrap:wrap;display:none">
+    <!-- FIX: removed duplicate display:none — only one display style now -->
+    <div id="expCustomRow" style="display:none;padding:8px 16px 0;gap:8px;align-items:center;flex-wrap:wrap">
       <label style="font-size:11px;color:#9aa8c0;font-weight:700">From:</label>
       <input type="date" id="expFrom" style="padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--white);font-size:11px;font-family:'Poppins',sans-serif" onchange="updateExpensesChart()"/>
       <label style="font-size:11px;color:#9aa8c0;font-weight:700">To:</label>
@@ -880,26 +881,28 @@ header{position:sticky;top:0;z-index:80;background:rgba(13,23,41,.97);border-bot
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script>
 /* ══ LOADER ══ */
-var ldVal=0;
 var ldBarEl=document.getElementById('ldBar');
 var ldPctEl=document.getElementById('ldPct');
 var ldSubEl=document.getElementById('ldSub');
 var ldEl=document.getElementById('loader');
+var loaderHidden=false; // FIX: guard to prevent double-hide
 
-function advLD(to,label){
+function setLD(pct,label){
   if(label)ldSubEl.textContent=label;
-  function step(){
-    if(ldVal<to){ldVal=Math.min(ldVal+4,to);ldBarEl.style.width=ldVal+'%';ldPctEl.textContent=ldVal+'%';if(ldVal<to)requestAnimationFrame(step);}
-  }
-  requestAnimationFrame(step);
+  ldBarEl.style.width=pct+'%';
+  ldPctEl.textContent=pct+'%';
 }
-advLD(25,'Authenticating...');
 
 function hideLoader(){
-  advLD(100,'Ready!');
+  if(loaderHidden)return; // FIX: only hide once
+  loaderHidden=true;
+  setLD(100,'Ready!');
   ldEl.classList.add('hide');
   setTimeout(function(){ldEl.style.display='none';},450);
 }
+
+setLD(25,'Authenticating...');
+
 /* ══ AUTH ══ */
 var _u=localStorage.getItem('srUser');
 if(!_u){window.location.href='login.html';}
@@ -909,7 +912,7 @@ document.getElementById('hdrSub').textContent='Admin: '+CU.name;
 function ini(n){return(n||'A').split(/\s+/).map(function(x){return x[0]||'';}).join('').toUpperCase().slice(0,2)||'A';}
 document.getElementById('sbAv').textContent=ini(CU.name);
 document.getElementById('sbName').textContent=CU.name;
-  
+
 /* ══ THEME ══ */
 var isDark=true;
 function applyTheme(dark){
@@ -936,7 +939,7 @@ var FC={
 };
 firebase.initializeApp(FC);
 var db=firebase.database();
-advLD(40,'Loading data...');
+setLD(40,'Loading data...');
 
 /* ══ STATE ══ */
 var AC={},AP={},DL=[],EX=[],PX=[];
@@ -944,30 +947,37 @@ var aLoc='',aFilter='all';
 var apC=null,apPend=0;
 var dpCid=null,dpKey=null;
 var odCid=null,detCid=null,editCid=null,delCustCid=null,cpPh='',nlCustId=null;
-var dataReady=false,loadCount=0,prevDelCount=0;
+var dataReady=false,prevDelCount=0;
 var curPage=1,PAGE_SIZE=30;
 var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var charts={};
 
-/* ══ LOAD COUNTER — FIXED ══ */
-var NEEDED=3;
+/* ══ LOAD COUNTER — FIXED ══
+   Only wait for customers + payments (2 sources).
+   settings/prefixes is optional — handled separately.
+*/
+var NEEDED=2;       // FIX: was 3, prefixes is optional
+var loadCount=0;
+
 function checkLoaded(){
   loadCount++;
-  advLD(Math.min(92,40+loadCount*18),'Loading...');
-  if(loadCount>=NEEDED){
+  var pct=Math.min(90, 40+loadCount*25);
+  setLD(pct,'Loading...');
+  if(loadCount>=NEEDED&&!dataReady){
     dataReady=true;
     hideLoader();
     uAll();
   }
 }
-/* Guarantee page opens within 3 seconds no matter what */
+
+/* FIX: Hard fallback — if Firebase doesn't respond within 4s, open the page anyway */
 setTimeout(function(){
   if(!dataReady){
     dataReady=true;
     hideLoader();
     uAll();
   }
-},3000);
+},4000);
 
 /* ══ HELPERS ══ */
 function fmtM(n){return'₹'+Number(n||0).toLocaleString('en-IN');}
@@ -1040,21 +1050,38 @@ function isOD(c){
   return Math.floor((Date.now()-last.getTime())/864e5)>=30;
 }
 
-/* ══ FIREBASE LISTENERS — with error callbacks so loader never freezes ══ */
+/* ══ FIREBASE LISTENERS ══ */
+
+/* FIX: prefixes loads independently — does NOT block the loader */
 db.ref('settings/prefixes').on('value',function(s){
   var v=s.val();PX=Array.isArray(v)&&v.length?v:[];
-  checkLoaded();if(dataReady)uAll();
-},function(){checkLoaded();});
+  if(dataReady)uAll();
+},function(err){
+  console.warn('prefixes load error:',err);
+  PX=[];
+  if(dataReady)uAll();
+});
 
+/* customers and payments are the two REQUIRED sources */
 db.ref('customers').on('value',function(s){
   AC=s.val()||{};
-  checkLoaded();if(dataReady)uAll();
-},function(){checkLoaded();});
+  checkLoaded();
+  if(dataReady)uAll();
+},function(err){
+  console.warn('customers load error:',err);
+  AC={};
+  checkLoaded();
+});
 
 db.ref('payments').on('value',function(s){
   AP=s.val()||{};
-  checkLoaded();if(dataReady)uAll();
-},function(){checkLoaded();});
+  checkLoaded();
+  if(dataReady)uAll();
+},function(err){
+  console.warn('payments load error:',err);
+  AP={};
+  checkLoaded();
+});
 
 db.ref('expenses').on('value',function(s){
   EX=s.val()?Object.values(s.val()):[];
@@ -1184,6 +1211,7 @@ function updateMonthPick(){
 function updateExpensesChart(){
   var range=document.getElementById('expRange').value;
   var cr=document.getElementById('expCustomRow');
+  // FIX: use flex when showing, none when hiding
   cr.style.display=range==='custom'?'flex':'none';
   var labels=[],data=[],total=0,subTxt='';
   var now=new Date();
@@ -1383,6 +1411,7 @@ function renderLocTabs(){
     wrap.appendChild(t);
   });
 }
+
 /* ══ FILTER ══ */
 function setF(f){
   aFilter=f;curPage=1;
@@ -1482,7 +1511,7 @@ function renderCust(){
         '<div class="cc-acts" style="'+gridCols+'">'+
           (!c._dn?'<button class="cc-act pay" onclick="openPay(\''+E(c.customerId)+'\','+c._pn+')"><i class="fas fa-rupee-sign"></i> Pay</button>':'')+
           '<button class="cc-act det" onclick="openDet(\''+E(c.customerId)+'\')"><i class="fas fa-info-circle"></i> Info</button>'+
-          '<button class="cc-act call" onclick="openCall('+JSON.stringify(c.name||'')+','+JSON.stringify(c.phone||''))+')"><i class="fas fa-phone-alt"></i> Call</button>'+
+          '<button class="cc-act call" onclick="openCall('+JSON.stringify(c.name||'')+','+JSON.stringify(c.phone||'')+')"><i class="fas fa-phone-alt"></i> Call</button>'+
           (c._dn
             ?'<button class="cc-act newloan" onclick="openNewLoan(\''+E(c.customerId)+'\')"><i class="fas fa-plus"></i> New Loan</button>'
             :c._ov
@@ -1663,7 +1692,7 @@ function openDet(id){
       '<div class="dsr"><span class="dl2">Loan Amount</span><span class="dv2">'+fmtM(c.loanAmount)+'</span></div>'+
       '<div class="dsr"><span class="dl2">Commission</span><span class="dv2" style="color:#e53935">- '+fmtM(c.commissionFee||0)+'</span></div>'+
       '<div class="dsr"><span class="dl2">Customer Receives</span><span class="dv2" style="color:#43a047">'+fmtM(c.customerReceives||0)+'</span></div>'+
-      '<div class="dsr"><span class="dl2">Interest ('+( c.interestRate||0)+'%)</span><span class="dv2">'+fmtM(c.interestAmount||0)+'</span></div>'+
+      '<div class="dsr"><span class="dl2">Interest ('+(c.interestRate||0)+'%)</span><span class="dv2">'+fmtM(c.interestAmount||0)+'</span></div>'+
       '<div class="dsr"><span class="dl2">Total Payable</span><span class="dv2" style="color:#42a5f5;font-size:15px">'+fmtM(t)+'</span></div>'+
     '</div>'+
     '<div class="dsec"><div class="dsec-t" style="color:#43a047"><i class="fas fa-check-circle"></i> Payment Status</div>'+
@@ -2085,7 +2114,7 @@ function sT(m){
 
 /* ══ RESET ══ */
 function openResetModal(){
-  if(!CU||CU.role!=='admin'){sT('🚫 Only admin can reset');return;}
+  if(!CU||CU.role!=='admin'){sT('��� Only admin can reset');return;}
   document.getElementById('resetPin').value='';
   document.getElementById('resetPinErr').style.display='none';
   oM('resetM');
