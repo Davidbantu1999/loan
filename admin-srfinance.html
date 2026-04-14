@@ -1511,8 +1511,9 @@ function renderCust(){
         '<div class="cc-acts" style="'+gridCols+'">'+
           (!c._dn?'<button class="cc-act pay" onclick="openPay(\''+E(c.customerId)+'\','+c._pn+')"><i class="fas fa-rupee-sign"></i> Pay</button>':'')+
           '<button class="cc-act det" onclick="openDet(\''+E(c.customerId)+'\')"><i class="fas fa-info-circle"></i> Info</button>'+
-          '<button class="cc-act call" onclick="openCall('+JSON.stringify(c.name||'')+','+JSON.stringify(c.phone||'')+')"><i class="fas fa-phone-alt"></i> Call</button>'+
-          (c._dn
+'<button class="cc-act call" onclick="openCall(this)" data-name="'+E(c.name||'')+'" data-phone="'+E(c.phone||'')+'"><i class="fas fa-phone-alt"></i> Call</button>'+
+      
+      (c._dn
             ?'<button class="cc-act newloan" onclick="openNewLoan(\''+E(c.customerId)+'\')"><i class="fas fa-plus"></i> New Loan</button>'
             :c._ov
               ?'<button class="cc-act clr" onclick="rmOD(\''+E(c.customerId)+'\')"><i class="fas fa-check"></i> Clear OD</button>'
