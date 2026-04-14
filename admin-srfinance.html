@@ -1582,11 +1582,14 @@ function tH(sid){
 
 
   /* ══ CALL ══ */
-function openCall(nm, ph) {
-  cpPh = ph || '';
-  document.getElementById('callName').textContent = nm || 'Unknown';
+/* ══ CALL ══ */
+function openCall(btn) {
+  var nm = btn.getAttribute('data-name') || 'Unknown';
+  var ph = btn.getAttribute('data-phone') || '';
+  cpPh = ph;
+  document.getElementById('callName').textContent = nm;
   document.getElementById('callNum').textContent = ph || 'No phone number';
-  document.getElementById('callLink').href = 'tel:' + (ph || '');
+  document.getElementById('callLink').href = 'tel:' + ph;
   oM('callM');
 }
 function cpPhone() {
