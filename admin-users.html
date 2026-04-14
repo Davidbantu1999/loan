@@ -81,12 +81,45 @@ header{position:sticky;top:0;z-index:80;background:rgba(13,23,41,.97);border-bot
 .page{max-width:1200px;margin:0 auto;padding:14px}
 .sec-title{font-size:11px;font-weight:700;color:#9aa8c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 
-/* STATS ROW */
-.stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-.stat-pill{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow)}
-.stat-pill-icon{font-size:18px}
-.stat-pill-val{font-size:22px;font-weight:900;font-family:'Montserrat',sans-serif;color:var(--white)}
-.stat-pill-lbl{font-size:10px;color:#9aa8c0;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+/* ── STATS GRID (fixed mobile) ── */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-bottom:18px;
+}
+@media(min-width:540px){
+  .stats-grid{grid-template-columns:repeat(4,1fr);}
+}
+.stat-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px 10px;
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  gap:4px;
+  position:relative;
+  overflow:hidden;
+}
+.stat-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:3px;
+  border-radius:12px 12px 0 0;
+}
+.stat-card.c-blue::before{background:#42a5f5;}
+.stat-card.c-green::before{background:#43a047;}
+.stat-card.c-red::before{background:#e53935;}
+.stat-card.c-purple::before{background:#ab47bc;}
+.stat-icon{font-size:20px;margin-bottom:2px;}
+.stat-val{font-size:26px;font-weight:900;font-family:'Montserrat',sans-serif;color:var(--white);line-height:1;}
+.stat-lbl{font-size:9px;color:#9aa8c0;text-transform:uppercase;letter-spacing:.5px;font-weight:700;white-space:nowrap;}
 
 /* TOOLBAR */
 .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
@@ -196,7 +229,7 @@ header{position:sticky;top:0;z-index:80;background:rgba(13,23,41,.97);border-bot
 .add-extra-btn{width:100%;padding:9px;border-radius:9px;background:rgba(66,165,245,.08);border:1px dashed rgba(66,165,245,.3);color:#42a5f5;font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
 .add-extra-btn:hover{background:rgba(66,165,245,.14)}
 
-/* PIN INPUT */
+/* PIN */
 .pin-input{width:100%;padding:14px;border-radius:10px;border:2px solid rgba(66,165,245,.3);background:rgba(255,255,255,.05);color:var(--white);font-size:26px;text-align:center;letter-spacing:10px;font-family:'Poppins',sans-serif;margin-bottom:10px}
 .pin-input.err{border-color:rgba(229,57,53,.5)}
 .pin-err{color:#e53935;font-size:11px;font-weight:700;margin-bottom:10px;display:none}
@@ -232,11 +265,11 @@ header{position:sticky;top:0;z-index:80;background:rgba(13,23,41,.97);border-bot
     <div class="sb-role"><i class="fas fa-shield-alt"></i> Admin</div>
   </div>
   <nav class="sb-nav">
-    <a href="admin-srfinance-2.html" class="sb-item"><span class="sb-icon"><i class="fas fa-tachometer-alt"></i></span>Admin Dashboard</a>
-    <a href="money-collection.html" class="sb-item"><span class="sb-icon"><i class="fas fa-rupee-sign"></i></span>Collection</a>
+    <a href="admin-srfinance.html" class="sb-item"><span class="sb-icon"><i class="fas fa-tachometer-alt"></i></span>Admin Dashboard</a>
+    <a href="collection.html" class="sb-item"><span class="sb-icon"><i class="fas fa-rupee-sign"></i></span>Collection</a>
     <a href="expenses.html" class="sb-item"><span class="sb-icon"><i class="fas fa-chart-bar"></i></span>Expenses</a>
     <a href="admin-users.html" class="sb-item active"><span class="sb-icon"><i class="fas fa-users"></i></span>Users</a>
-    <a href="loan-registration.html" class="sb-item"><span class="sb-icon"><i class="fas fa-plus-circle"></i></span>New Loan</a>
+    <a href="index.html" class="sb-item"><span class="sb-icon"><i class="fas fa-plus-circle"></i></span>New Loan</a>
     <hr class="sb-div"/>
     <div class="sb-theme-row">
       <span class="sb-theme-lbl"><i class="fas fa-moon"></i> Dark Mode</span>
@@ -267,35 +300,27 @@ header{position:sticky;top:0;z-index:80;background:rgba(13,23,41,.97);border-bot
 
 <main class="page">
 
-  <!-- STATS -->
-  <div class="stats-row" id="statsRow">
-    <div class="stat-pill">
-      <div class="stat-pill-icon" style="color:#42a5f5"><i class="fas fa-users"></i></div>
-      <div>
-        <div class="stat-pill-val" id="stTotal">0</div>
-        <div class="stat-pill-lbl">Total Users</div>
-      </div>
+  <!-- STATS GRID — 2×2 on mobile, 4×1 on wider screens -->
+  <div class="stats-grid">
+    <div class="stat-card c-blue">
+      <div class="stat-icon" style="color:#42a5f5"><i class="fas fa-users"></i></div>
+      <div class="stat-val" id="stTotal">0</div>
+      <div class="stat-lbl">Total Users</div>
     </div>
-    <div class="stat-pill">
-      <div class="stat-pill-icon" style="color:#43a047"><i class="fas fa-user-check"></i></div>
-      <div>
-        <div class="stat-pill-val" id="stActive">0</div>
-        <div class="stat-pill-lbl">Active</div>
-      </div>
+    <div class="stat-card c-green">
+      <div class="stat-icon" style="color:#43a047"><i class="fas fa-user-check"></i></div>
+      <div class="stat-val" id="stActive">0</div>
+      <div class="stat-lbl">Active</div>
     </div>
-    <div class="stat-pill">
-      <div class="stat-pill-icon" style="color:#e53935"><i class="fas fa-user-lock"></i></div>
-      <div>
-        <div class="stat-pill-val" id="stLocked">0</div>
-        <div class="stat-pill-lbl">Locked</div>
-      </div>
+    <div class="stat-card c-red">
+      <div class="stat-icon" style="color:#e53935"><i class="fas fa-user-lock"></i></div>
+      <div class="stat-val" id="stLocked">0</div>
+      <div class="stat-lbl">Locked</div>
     </div>
-    <div class="stat-pill">
-      <div class="stat-pill-icon" style="color:#ab47bc"><i class="fas fa-user-shield"></i></div>
-      <div>
-        <div class="stat-pill-val" id="stAdmins">0</div>
-        <div class="stat-pill-lbl">Admins</div>
-      </div>
+    <div class="stat-card c-purple">
+      <div class="stat-icon" style="color:#ab47bc"><i class="fas fa-user-shield"></i></div>
+      <div class="stat-val" id="stAdmins">0</div>
+      <div class="stat-lbl">Admins</div>
     </div>
   </div>
 
@@ -411,422 +436,402 @@ header{position:sticky;top:0;z-index:80;background:rgba(13,23,41,.97);border-bot
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script>
 /* ══ LOADER ══ */
-var ldBarEl = document.getElementById('ldBar');
-var ldPctEl = document.getElementById('ldPct');
-var ldSubEl = document.getElementById('ldSub');
-var ldEl    = document.getElementById('loader');
-var loaderHidden = false;
+var ldBarEl=document.getElementById('ldBar');
+var ldPctEl=document.getElementById('ldPct');
+var ldSubEl=document.getElementById('ldSub');
+var ldEl=document.getElementById('loader');
+var loaderHidden=false;
 
-function setLD(pct, label) {
-  if (label) ldSubEl.textContent = label;
-  ldBarEl.style.width = pct + '%';
-  ldPctEl.textContent = pct + '%';
+function setLD(pct,label){
+  if(label)ldSubEl.textContent=label;
+  ldBarEl.style.width=pct+'%';
+  ldPctEl.textContent=pct+'%';
 }
-function hideLoader() {
-  if (loaderHidden) return;
-  loaderHidden = true;
-  setLD(100, 'Ready!');
+function hideLoader(){
+  if(loaderHidden)return;
+  loaderHidden=true;
+  setLD(100,'Ready!');
   ldEl.classList.add('hide');
-  setTimeout(function () { ldEl.style.display = 'none'; }, 450);
+  setTimeout(function(){ldEl.style.display='none';},450);
 }
-setLD(20, 'Authenticating...');
+setLD(20,'Authenticating...');
 
 /* ══ AUTH ══ */
-var _u = localStorage.getItem('srUser');
-if (!_u) { window.location.href = 'login.html'; }
-var CU = (_u && _u !== 'undefined') ? JSON.parse(_u) : { name: 'Admin', role: 'admin' };
-if (CU.role !== 'admin') { window.location.href = 'money-collection.html'; }
-document.getElementById('hdrSub').textContent = 'Admin: ' + CU.name;
+var _u=localStorage.getItem('srUser');
+if(!_u){window.location.href='login.html';}
+var CU=(_u&&_u!=='undefined')?JSON.parse(_u):{name:'Admin',role:'admin'};
+if(CU.role!=='admin'){window.location.href='money-collection.html';}
+document.getElementById('hdrSub').textContent='Admin: '+CU.name;
 
-function ini(n) {
-  return (n || 'A').split(/\s+/).map(function (x) { return x[0] || ''; }).join('').toUpperCase().slice(0, 2) || 'A';
+function ini(n){
+  return(n||'A').split(/\s+/).map(function(x){return x[0]||'';}).join('').toUpperCase().slice(0,2)||'A';
 }
-document.getElementById('sbAv').textContent = ini(CU.name);
-document.getElementById('sbName').textContent = CU.name;
+document.getElementById('sbAv').textContent=ini(CU.name);
+document.getElementById('sbName').textContent=CU.name;
 
 /* ══ THEME ══ */
-var isDark = true;
-function applyTheme(dark) {
-  isDark = dark;
-  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  var tog   = document.getElementById('themeToggle');
-  var thumb = tog.querySelector('.theme-thumb');
-  if (dark) {
-    tog.classList.add('on');
-    thumb.innerHTML = '<i class="fas fa-moon" style="font-size:8px"></i>';
-  } else {
-    tog.classList.remove('on');
-    thumb.innerHTML = '<i class="fas fa-sun" style="font-size:8px"></i>';
-  }
-  localStorage.setItem('srTheme', dark ? 'dark' : 'light');
+var isDark=true;
+function applyTheme(dark){
+  isDark=dark;
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+  var tog=document.getElementById('themeToggle');
+  var thumb=tog.querySelector('.theme-thumb');
+  if(dark){tog.classList.add('on');thumb.innerHTML='<i class="fas fa-moon" style="font-size:8px"></i>';}
+  else{tog.classList.remove('on');thumb.innerHTML='<i class="fas fa-sun" style="font-size:8px"></i>';}
+  localStorage.setItem('srTheme',dark?'dark':'light');
 }
-function toggleTheme() { applyTheme(!isDark); }
-applyTheme(localStorage.getItem('srTheme') ? localStorage.getItem('srTheme') === 'dark' : true);
+function toggleTheme(){applyTheme(!isDark);}
+applyTheme(localStorage.getItem('srTheme')?localStorage.getItem('srTheme')==='dark':true);
 
 /* ══ FIREBASE ══ */
-var FC = {
-  apiKey: "AIzaSyDQlQzo1yVfQOYYgNCrOcqBwLEAXKfZWCE",
-  authDomain: "loan-17784.firebaseapp.com",
-  databaseURL: "https://loan-17784-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "loan-17784",
-  storageBucket: "loan-17784.firebasestorage.app",
-  messagingSenderId: "30800980008",
-  appId: "1:30800980008:web:9869d2e63a61b2e7022d1d"
+var FC={
+  apiKey:"AIzaSyDQlQzo1yVfQOYYgNCrOcqBwLEAXKfZWCE",
+  authDomain:"loan-17784.firebaseapp.com",
+  databaseURL:"https://loan-17784-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"loan-17784",
+  storageBucket:"loan-17784.firebasestorage.app",
+  messagingSenderId:"30800980008",
+  appId:"1:30800980008:web:9869d2e63a61b2e7022d1d"
 };
 firebase.initializeApp(FC);
-var db = firebase.database();
-setLD(50, 'Loading users...');
+var db=firebase.database();
+setLD(50,'Loading users...');
 
 /* ══ STATE ══ */
-var USERS    = {};   // key -> user object
-var curFilter = 'all';
-var editKey   = null;
-var delKey    = null;
-var MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var USERS={};
+var curFilter='all';
+var editKey=null;
+var delKey=null;
+var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 /* ══ FALLBACK TIMEOUT ══ */
-setTimeout(function () {
-  if (!loaderHidden) { hideLoader(); renderUsers(); }
-}, 4000);
+setTimeout(function(){
+  if(!loaderHidden){hideLoader();renderUsers();}
+},4000);
 
 /* ══ FIREBASE LISTENER ══ */
-db.ref('users').on('value', function (snap) {
-  USERS = snap.val() || {};
+db.ref('users').on('value',function(snap){
+  USERS=snap.val()||{};
   hideLoader();
   updateStats();
   renderUsers();
-}, function (err) {
-  console.warn('users load error:', err);
-  USERS = {};
+},function(err){
+  console.warn('users load error:',err);
+  USERS={};
   hideLoader();
   renderUsers();
 });
 
 /* ══ HELPERS ══ */
-function fmtD(ts) {
-  if (!ts) return '—';
-  var d = new Date(ts);
-  return d.getDate() + ' ' + MO[d.getMonth()] + ' ' + d.getFullYear();
+function fmtD(ts){
+  if(!ts)return'—';
+  var d=new Date(ts);
+  return d.getDate()+' '+MO[d.getMonth()]+' '+d.getFullYear();
 }
-function E(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function E(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-function avColor(name, role, locked) {
-  if (locked) return 'av-red';
-  if (role === 'admin') return 'av-blue';
-  var colors = ['av-green', 'av-purple', 'av-blue'];
-  var idx = (name || '').charCodeAt(0) % colors.length;
-  return colors[idx];
+function avColor(name,role,locked){
+  if(locked)return'av-red';
+  if(role==='admin')return'av-blue';
+  var colors=['av-green','av-purple','av-blue'];
+  return colors[(name||'').charCodeAt(0)%colors.length];
 }
 
 /* ══ STATS ══ */
-function updateStats() {
-  var list   = Object.values(USERS);
-  var total  = list.length;
-  var locked = list.filter(function (u) { return u.isLocked; }).length;
-  var admins = list.filter(function (u) { return u.role === 'admin'; }).length;
-  document.getElementById('stTotal').textContent  = total;
-  document.getElementById('stActive').textContent = total - locked;
-  document.getElementById('stLocked').textContent = locked;
-  document.getElementById('stAdmins').textContent = admins;
+function updateStats(){
+  var list=Object.values(USERS);
+  var total=list.length;
+  var locked=list.filter(function(u){return u.isLocked;}).length;
+  var admins=list.filter(function(u){return u.role==='admin';}).length;
+  document.getElementById('stTotal').textContent=total;
+  document.getElementById('stActive').textContent=total-locked;
+  document.getElementById('stLocked').textContent=locked;
+  document.getElementById('stAdmins').textContent=admins;
 }
 
 /* ══ FILTER ══ */
-function setF(f, el) {
-  curFilter = f;
-  document.querySelectorAll('.ftab').forEach(function (t) { t.classList.remove('active'); });
-  if (el) el.classList.add('active');
+function setF(f,el){
+  curFilter=f;
+  document.querySelectorAll('.ftab').forEach(function(t){t.classList.remove('active');});
+  if(el)el.classList.add('active');
   renderUsers();
 }
 
 /* ══ RENDER ══ */
-function renderUsers() {
-  var grid = document.getElementById('userGrid');
-  var q    = (document.getElementById('srch').value || '').trim().toLowerCase();
-  var list = Object.entries(USERS).map(function (e) {
-    return Object.assign({}, e[1], { _key: e[0] });
+function renderUsers(){
+  var grid=document.getElementById('userGrid');
+  var q=(document.getElementById('srch').value||'').trim().toLowerCase();
+  var list=Object.entries(USERS).map(function(e){
+    return Object.assign({},e[1],{_key:e[0]});
   });
 
-  // filter
-  if (curFilter === 'staff')  list = list.filter(function (u) { return u.role === 'staff'; });
-  if (curFilter === 'admin')  list = list.filter(function (u) { return u.role === 'admin'; });
-  if (curFilter === 'locked') list = list.filter(function (u) { return u.isLocked; });
+  if(curFilter==='staff') list=list.filter(function(u){return u.role==='staff';});
+  if(curFilter==='admin') list=list.filter(function(u){return u.role==='admin';});
+  if(curFilter==='locked')list=list.filter(function(u){return u.isLocked;});
 
-  // search
-  if (q) {
-    list = list.filter(function (u) {
-      return (u.name   || '').toLowerCase().includes(q) ||
-             (u.phone  || '').includes(q) ||
-             (u.role   || '').toLowerCase().includes(q) ||
-             (u.email  || '').toLowerCase().includes(q);
+  if(q){
+    list=list.filter(function(u){
+      return(u.name  ||'').toLowerCase().includes(q)||
+             (u.phone||'').includes(q)||
+             (u.role ||'').toLowerCase().includes(q)||
+             (u.email||'').toLowerCase().includes(q);
     });
   }
 
-  // sort newest first
-  list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+  list.sort(function(a,b){return(b.createdAt||0)-(a.createdAt||0);});
 
-  if (!list.length) {
-    grid.innerHTML = '<div class="nd" style="grid-column:1/-1">' +
-      '<div class="nd-icon"><i class="fas fa-user-slash"></i></div>' +
-      '<div class="nd-txt">' + (q || curFilter !== 'all' ? 'No users match this filter' : 'No users yet. Click "+ Add User" to create one.') + '</div>' +
+  if(!list.length){
+    grid.innerHTML='<div class="nd" style="grid-column:1/-1">'+
+      '<div class="nd-icon"><i class="fas fa-user-slash"></i></div>'+
+      '<div class="nd-txt">'+(q||curFilter!=='all'?'No users match this filter':'No users yet. Click "+ Add User" to create one.')+'</div>'+
       '</div>';
     return;
   }
 
-  grid.innerHTML = list.map(function (u) {
-    var locked  = !!u.isLocked;
-    var avCls   = avColor(u.name, u.role, locked);
-    var cardCls = locked ? 'st-locked' : (u.role === 'admin' ? 'role-admin' : 'role-staff');
-    var rb      = u.role === 'admin' ? 'rb-admin' : 'rb-staff';
-    var extras  = (u.extraFields && u.extraFields.length)
-      ? u.extraFields.map(function (ef) {
-          return '<div class="uc-field">' +
-            '<span class="uc-field-icon"><i class="fas fa-tag"></i></span>' +
-            '<span class="uc-field-lbl">' + E(ef.label) + ':</span>' +
-            '<span class="uc-field-val">' + E(ef.value) + '</span>' +
+  grid.innerHTML=list.map(function(u){
+    var locked=!!u.isLocked;
+    var avCls=avColor(u.name,u.role,locked);
+    var cardCls=locked?'st-locked':(u.role==='admin'?'role-admin':'role-staff');
+    var rb=u.role==='admin'?'rb-admin':'rb-staff';
+    var extras=(u.extraFields&&u.extraFields.length)
+      ?u.extraFields.map(function(ef){
+        return'<div class="uc-field">'+
+          '<span class="uc-field-icon"><i class="fas fa-tag"></i></span>'+
+          '<span class="uc-field-lbl">'+E(ef.label)+':</span>'+
+          '<span class="uc-field-val">'+E(ef.value)+'</span>'+
           '</div>';
-        }).join('')
-      : '';
+      }).join('')
+      :'';
 
-    return '<div class="uc ' + cardCls + '" id="uc-' + u._key + '">' +
-      '<div class="uc-strip"></div>' +
-      '<div class="uc-head">' +
-        '<div class="uc-av ' + avCls + '">' + ini(u.name) + '</div>' +
-        '<div class="uc-head-mid">' +
-          '<div class="uc-name">' + E(u.name || '—') + '</div>' +
-          '<span class="uc-role-badge ' + rb + '"><i class="fas fa-' + (u.role === 'admin' ? 'shield-alt' : 'user') + '"></i> ' + (u.role || 'staff') + '</span>' +
-          '<div class="uc-status">' +
-            '<div class="status-dot ' + (locked ? 'dot-locked' : 'dot-active') + '"></div>' +
-            '<span class="status-txt ' + (locked ? 'st-locked-txt' : 'st-active-txt') + '">' + (locked ? 'Locked' : 'Active') + '</span>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="uc-body">' +
-        '<div class="uc-field">' +
-          '<span class="uc-field-icon"><i class="fas fa-phone"></i></span>' +
-          '<span class="uc-field-lbl">Phone:</span>' +
-          '<span class="uc-field-val"><a href="tel:' + E(u.phone || '') + '" style="color:#43a047;text-decoration:none">' + E(u.phone || '—') + '</a></span>' +
-        '</div>' +
-        (u.email ? '<div class="uc-field"><span class="uc-field-icon"><i class="fas fa-envelope"></i></span><span class="uc-field-lbl">Email:</span><span class="uc-field-val">' + E(u.email) + '</span></div>' : '') +
-        (u.address ? '<div class="uc-field"><span class="uc-field-icon"><i class="fas fa-home"></i></span><span class="uc-field-lbl">Address:</span><span class="uc-field-val">' + E(u.address) + '</span></div>' : '') +
-        (u.aadhar ? '<div class="uc-field"><span class="uc-field-icon"><i class="fas fa-id-card"></i></span><span class="uc-field-lbl">Aadhar:</span><span class="uc-field-val">' + E(u.aadhar) + '</span></div>' : '') +
-        (u.note ? '<div class="uc-field"><span class="uc-field-icon"><i class="fas fa-sticky-note"></i></span><span class="uc-field-lbl">Note:</span><span class="uc-field-val">' + E(u.note) + '</span></div>' : '') +
-        extras +
-        '<div class="uc-date"><i class="fas fa-calendar-alt" style="margin-right:3px"></i>Added: ' + fmtD(u.createdAt) + '</div>' +
-      '</div>' +
-      '<div class="uc-acts">' +
-        '<button class="uc-act ' + (locked ? 'unlock' : 'lock') + '" onclick="toggleLock(\'' + u._key + '\',' + locked + ')">' +
-          '<i class="fas fa-' + (locked ? 'lock-open' : 'lock') + '"></i> ' + (locked ? 'Unlock' : 'Lock') +
-        '</button>' +
-        '<button class="uc-act edit" onclick="openEdit(\'' + u._key + '\')"><i class="fas fa-pen"></i> Edit</button>' +
-        '<button class="uc-act del" onclick="openDel(\'' + u._key + '\')"><i class="fas fa-trash"></i> Delete</button>' +
-      '</div>' +
+    return'<div class="uc '+cardCls+'" id="uc-'+u._key+'">'+
+      '<div class="uc-strip"></div>'+
+      '<div class="uc-head">'+
+        '<div class="uc-av '+avCls+'">'+ini(u.name)+'</div>'+
+        '<div class="uc-head-mid">'+
+          '<div class="uc-name">'+E(u.name||'—')+'</div>'+
+          '<span class="uc-role-badge '+rb+'"><i class="fas fa-'+(u.role==='admin'?'shield-alt':'user')+'"></i> '+(u.role||'staff')+'</span>'+
+          '<div class="uc-status">'+
+            '<div class="status-dot '+(locked?'dot-locked':'dot-active')+'"></div>'+
+            '<span class="status-txt '+(locked?'st-locked-txt':'st-active-txt')+'">'+(locked?'Locked':'Active')+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="uc-body">'+
+        '<div class="uc-field">'+
+          '<span class="uc-field-icon"><i class="fas fa-phone"></i></span>'+
+          '<span class="uc-field-lbl">Phone:</span>'+
+          '<span class="uc-field-val"><a href="tel:'+E(u.phone||'')+'" style="color:#43a047;text-decoration:none">'+E(u.phone||'—')+'</a></span>'+
+        '</div>'+
+        (u.email?'<div class="uc-field"><span class="uc-field-icon"><i class="fas fa-envelope"></i></span><span class="uc-field-lbl">Email:</span><span class="uc-field-val">'+E(u.email)+'</span></div>':'')+
+        (u.address?'<div class="uc-field"><span class="uc-field-icon"><i class="fas fa-home"></i></span><span class="uc-field-lbl">Address:</span><span class="uc-field-val">'+E(u.address)+'</span></div>':'')+
+        (u.aadhar?'<div class="uc-field"><span class="uc-field-icon"><i class="fas fa-id-card"></i></span><span class="uc-field-lbl">Aadhar:</span><span class="uc-field-val">'+E(u.aadhar)+'</span></div>':'')+
+        (u.note?'<div class="uc-field"><span class="uc-field-icon"><i class="fas fa-sticky-note"></i></span><span class="uc-field-lbl">Note:</span><span class="uc-field-val">'+E(u.note)+'</span></div>':'')+
+        extras+
+        '<div class="uc-date"><i class="fas fa-calendar-alt" style="margin-right:3px"></i>Added: '+fmtD(u.createdAt)+'</div>'+
+      '</div>'+
+      '<div class="uc-acts">'+
+        '<button class="uc-act '+(locked?'unlock':'lock')+'" onclick="toggleLock(\''+u._key+'\','+locked+')">'+
+          '<i class="fas fa-'+(locked?'lock-open':'lock')+'"></i> '+(locked?'Unlock':'Lock')+
+        '</button>'+
+        '<button class="uc-act edit" onclick="openEdit(\''+u._key+'\')"><i class="fas fa-pen"></i> Edit</button>'+
+        '<button class="uc-act del" onclick="openDel(\''+u._key+'\')"><i class="fas fa-trash"></i> Delete</button>'+
+      '</div>'+
     '</div>';
   }).join('');
 }
 
 /* ══ LOCK / UNLOCK ══ */
-function toggleLock(key, isCurrentlyLocked) {
-  db.ref('users/' + key).update({ isLocked: !isCurrentlyLocked })
-    .then(function () {
-      sT(isCurrentlyLocked ? '🔓 User unlocked — can now login' : '🔒 User locked — login disabled');
+function toggleLock(key,isCurrentlyLocked){
+  db.ref('users/'+key).update({isLocked:!isCurrentlyLocked})
+    .then(function(){
+      sT(isCurrentlyLocked?'🔓 User unlocked — can now login':'🔒 User locked — login disabled');
     })
-    .catch(function () { sT('⚠️ Failed to update'); });
+    .catch(function(){sT('⚠️ Failed to update');});
 }
 
 /* ══ EXTRA FIELDS ══ */
-function addExtraField(label, value) {
-  var wrap = document.getElementById('extraFieldsWrap');
-  var row  = document.createElement('div');
-  row.className = 'extra-field-row';
-  row.innerHTML =
-    '<input type="text" placeholder="Field label (e.g. Department)" value="' + E(label || '') + '"/>' +
-    '<input type="text" placeholder="Value" value="' + E(value || '') + '"/>' +
+function addExtraField(label,value){
+  var wrap=document.getElementById('extraFieldsWrap');
+  var row=document.createElement('div');
+  row.className='extra-field-row';
+  row.innerHTML=
+    '<input type="text" placeholder="Field label (e.g. Department)" value="'+E(label||'')+'"/>'+
+    '<input type="text" placeholder="Value" value="'+E(value||'')+'"/>'+
     '<button class="rm-extra" onclick="this.parentElement.remove()" title="Remove"><i class="fas fa-times"></i></button>';
   wrap.appendChild(row);
 }
-function getExtraFields() {
-  var rows   = document.querySelectorAll('#extraFieldsWrap .extra-field-row');
-  var result = [];
-  rows.forEach(function (r) {
-    var inputs = r.querySelectorAll('input');
-    var lbl    = (inputs[0].value || '').trim();
-    var val    = (inputs[1].value || '').trim();
-    if (lbl) result.push({ label: lbl, value: val });
+function getExtraFields(){
+  var rows=document.querySelectorAll('#extraFieldsWrap .extra-field-row');
+  var result=[];
+  rows.forEach(function(r){
+    var inputs=r.querySelectorAll('input');
+    var lbl=(inputs[0].value||'').trim();
+    var val=(inputs[1].value||'').trim();
+    if(lbl)result.push({label:lbl,value:val});
   });
   return result;
 }
-function clearExtraFields() {
-  document.getElementById('extraFieldsWrap').innerHTML = '';
+function clearExtraFields(){
+  document.getElementById('extraFieldsWrap').innerHTML='';
 }
 
 /* ══ PIN STRENGTH ══ */
-function checkPinStrength() {
-  var pin = document.getElementById('uPin').value;
-  var el  = document.getElementById('pinStrength');
-  if (!pin) { el.style.display = 'none'; return; }
-  el.style.display = 'block';
-  if (pin.length < 4) {
-    el.textContent = '⚠️ PIN must be exactly 4 digits';
-    el.style.color = '#ffb300';
+function checkPinStrength(){
+  var pin=document.getElementById('uPin').value;
+  var el=document.getElementById('pinStrength');
+  if(!pin){el.style.display='none';return;}
+  el.style.display='block';
+  if(pin.length<4){
+    el.textContent='⚠️ PIN must be exactly 4 digits';
+    el.style.color='#ffb300';
   } else {
-    el.textContent = '✅ PIN looks good';
-    el.style.color = '#43a047';
+    el.textContent='✅ PIN looks good';
+    el.style.color='#43a047';
   }
 }
 
 /* ══ ADD USER ══ */
-function openAdd() {
-  editKey = null;
-  document.getElementById('userMTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add User';
-  document.getElementById('uName').value    = '';
-  document.getElementById('uPin').value     = '';
-  document.getElementById('uRole').value    = 'staff';
-  document.getElementById('uPhone').value   = '';
-  document.getElementById('uEmail').value   = '';
-  document.getElementById('uAddress').value = '';
-  document.getElementById('uAadhar').value  = '';
-  document.getElementById('uNote').value    = '';
-  document.getElementById('pinStrength').style.display = 'none';
+function openAdd(){
+  editKey=null;
+  document.getElementById('userMTitle').innerHTML='<i class="fas fa-user-plus"></i> Add User';
+  document.getElementById('uName').value='';
+  document.getElementById('uPin').value='';
+  document.getElementById('uRole').value='staff';
+  document.getElementById('uPhone').value='';
+  document.getElementById('uEmail').value='';
+  document.getElementById('uAddress').value='';
+  document.getElementById('uAadhar').value='';
+  document.getElementById('uNote').value='';
+  document.getElementById('pinStrength').style.display='none';
   clearExtraFields();
   openModal('userM');
-  setTimeout(function () { document.getElementById('uName').focus(); }, 200);
+  setTimeout(function(){document.getElementById('uName').focus();},200);
 }
 
 /* ══ EDIT USER ══ */
-function openEdit(key) {
-  var u = USERS[key];
-  if (!u) return;
-  editKey = key;
-  document.getElementById('userMTitle').innerHTML = '<i class="fas fa-user-edit"></i> Edit User';
-  document.getElementById('uName').value    = u.name    || '';
-  document.getElementById('uPin').value     = u.pin     || '';
-  document.getElementById('uRole').value    = u.role    || 'staff';
-  document.getElementById('uPhone').value   = u.phone   || '';
-  document.getElementById('uEmail').value   = u.email   || '';
-  document.getElementById('uAddress').value = u.address || '';
-  document.getElementById('uAadhar').value  = u.aadhar  || '';
-  document.getElementById('uNote').value    = u.note    || '';
-  document.getElementById('pinStrength').style.display = 'none';
+function openEdit(key){
+  var u=USERS[key];if(!u)return;
+  editKey=key;
+  document.getElementById('userMTitle').innerHTML='<i class="fas fa-user-edit"></i> Edit User';
+  document.getElementById('uName').value=u.name||'';
+  document.getElementById('uPin').value=u.pin||'';
+  document.getElementById('uRole').value=u.role||'staff';
+  document.getElementById('uPhone').value=u.phone||'';
+  document.getElementById('uEmail').value=u.email||'';
+  document.getElementById('uAddress').value=u.address||'';
+  document.getElementById('uAadhar').value=u.aadhar||'';
+  document.getElementById('uNote').value=u.note||'';
+  document.getElementById('pinStrength').style.display='none';
   clearExtraFields();
-  if (u.extraFields && u.extraFields.length) {
-    u.extraFields.forEach(function (ef) { addExtraField(ef.label, ef.value); });
+  if(u.extraFields&&u.extraFields.length){
+    u.extraFields.forEach(function(ef){addExtraField(ef.label,ef.value);});
   }
   openModal('userM');
 }
 
 /* ══ SAVE USER ══ */
-function saveUser() {
-  var name  = (document.getElementById('uName').value  || '').trim();
-  var pin   = (document.getElementById('uPin').value   || '').trim();
-  var phone = (document.getElementById('uPhone').value || '').trim();
-  var role  = document.getElementById('uRole').value;
+function saveUser(){
+  var name=(document.getElementById('uName').value||'').trim();
+  var pin=(document.getElementById('uPin').value||'').trim();
+  var phone=(document.getElementById('uPhone').value||'').trim();
+  var role=document.getElementById('uRole').value;
 
-  if (!name)  { sT('⚠️ Name is required');           return; }
-  if (!phone) { sT('⚠️ Phone is required');          return; }
-  if (!pin)   { sT('⚠️ Login PIN is required');      return; }
-  if (pin.length !== 4 || !/^\d+$/.test(pin)) {
-    sT('⚠️ PIN must be exactly 4 digits');
-    return;
-  }
+  if(!name){sT('⚠️ Name is required');return;}
+  if(!phone){sT('⚠️ Phone is required');return;}
+  if(!pin){sT('⚠️ Login PIN is required');return;}
+  if(pin.length!==4||!/^\d+$/.test(pin)){sT('⚠️ PIN must be exactly 4 digits');return;}
 
-  var data = {
-    name:        name,
-    phone:       phone,
-    pin:         pin,
-    role:        role,
-    email:       (document.getElementById('uEmail').value   || '').trim(),
-    address:     (document.getElementById('uAddress').value || '').trim(),
-    aadhar:      (document.getElementById('uAadhar').value  || '').trim(),
-    note:        (document.getElementById('uNote').value    || '').trim(),
-    extraFields: getExtraFields(),
-    updatedAt:   Date.now()
+  var data={
+    name:name,phone:phone,pin:pin,role:role,
+    email:(document.getElementById('uEmail').value||'').trim(),
+    address:(document.getElementById('uAddress').value||'').trim(),
+    aadhar:(document.getElementById('uAadhar').value||'').trim(),
+    note:(document.getElementById('uNote').value||'').trim(),
+    extraFields:getExtraFields(),
+    updatedAt:Date.now()
   };
 
   var ref;
-  if (editKey) {
-    data.isLocked  = USERS[editKey] ? (USERS[editKey].isLocked || false) : false;
-    data.createdAt = USERS[editKey] ? (USERS[editKey].createdAt || Date.now()) : Date.now();
-    data.createdBy = USERS[editKey] ? (USERS[editKey].createdBy || CU.name) : CU.name;
-    ref = db.ref('users/' + editKey).set(data);
+  if(editKey){
+    data.isLocked=USERS[editKey]?(USERS[editKey].isLocked||false):false;
+    data.createdAt=USERS[editKey]?(USERS[editKey].createdAt||Date.now()):Date.now();
+    data.createdBy=USERS[editKey]?(USERS[editKey].createdBy||CU.name):CU.name;
+    ref=db.ref('users/'+editKey).set(data);
   } else {
-    data.isLocked  = false;
-    data.createdAt = Date.now();
-    data.createdBy = CU.name;
-    ref = db.ref('users').push(data);
+    data.isLocked=false;
+    data.createdAt=Date.now();
+    data.createdBy=CU.name;
+    ref=db.ref('users').push(data);
   }
 
-  ref.then(function () {
+  ref.then(function(){
     closeModal('userM');
-    sT(editKey ? '✅ User updated!' : '✅ User added!');
-    editKey = null;
-  }).catch(function () { sT('⚠️ Failed to save'); });
+    sT(editKey?'✅ User updated!':'✅ User added!');
+    editKey=null;
+  }).catch(function(){sT('⚠️ Failed to save');});
 }
 
 /* ══ DELETE USER ══ */
-function openDel(key) {
-  var u = USERS[key];
-  if (!u) return;
-  delKey = key;
-  document.getElementById('delUserInfo').textContent = 'Delete "' + (u.name || key) + '" (' + (u.role || 'staff') + ')?';
-  document.getElementById('delPin').value = '';
+function openDel(key){
+  var u=USERS[key];if(!u)return;
+  delKey=key;
+  document.getElementById('delUserInfo').textContent='Delete "'+(u.name||key)+'" ('+(u.role||'staff')+')?';
+  document.getElementById('delPin').value='';
   document.getElementById('delPin').classList.remove('err');
-  document.getElementById('delPinErr').style.display = 'none';
+  document.getElementById('delPinErr').style.display='none';
   openModal('delUserM');
 }
-function confirmDelete() {
-  var pin = (document.getElementById('delPin').value || '').trim();
-  if (pin !== '2026') {
+function confirmDelete(){
+  var pin=(document.getElementById('delPin').value||'').trim();
+  if(pin!=='2026'){
     document.getElementById('delPin').classList.add('err');
-    document.getElementById('delPinErr').style.display = 'block';
-    document.getElementById('delPin').value = '';
+    document.getElementById('delPinErr').style.display='block';
+    document.getElementById('delPin').value='';
     return;
   }
-  if (!delKey) return;
-  db.ref('users/' + delKey).remove()
-    .then(function () {
+  if(!delKey)return;
+  db.ref('users/'+delKey).remove()
+    .then(function(){
       closeModal('delUserM');
       sT('🗑 User deleted!');
-      delKey = null;
+      delKey=null;
     })
-    .catch(function () { sT('⚠️ Delete failed'); });
+    .catch(function(){sT('⚠️ Delete failed');});
 }
 
 /* ══ SIDEBAR ══ */
-function tSB() {
+function tSB(){
   document.getElementById('sbMenu').classList.toggle('show');
   document.getElementById('sbOv').classList.toggle('show');
-  document.body.style.overflow = document.getElementById('sbMenu').classList.contains('show') ? 'hidden' : '';
+  document.body.style.overflow=document.getElementById('sbMenu').classList.contains('show')?'hidden':'';
 }
 
 /* ══ LOGOUT ══ */
-function doLogout() {
+function doLogout(){
   localStorage.removeItem('srUser');
-  window.location.href = 'login.html';
+  window.location.href='login.html';
 }
 
 /* ══ MODAL UTILS ══ */
-function openModal(id)  { var el = document.getElementById(id); if (el) el.classList.add('show'); }
-function closeModal(id) { var el = document.getElementById(id); if (el) el.classList.remove('show'); }
+function openModal(id){var el=document.getElementById(id);if(el)el.classList.add('show');}
+function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove('show');}
 
 /* ══ TOAST ══ */
-function sT(m) {
-  var t = document.getElementById('toast');
-  t.textContent = m;
-  t.classList.add('show');
-  setTimeout(function () { t.classList.remove('show'); }, 2800);
+function sT(m){
+  var t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2800);
 }
 
 /* ══ EVENT LISTENERS ══ */
-document.querySelectorAll('.modal').forEach(function (m) {
-  m.addEventListener('click', function (e) {
-    if (e.target === m) m.classList.remove('show');
-  });
+document.querySelectorAll('.modal').forEach(function(m){
+  m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('show');});
 });
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.modal.show').forEach(function (m) { m.classList.remove('show'); });
-    if (document.getElementById('sbMenu').classList.contains('show')) tSB();
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal.show').forEach(function(m){m.classList.remove('show');});
+    if(document.getElementById('sbMenu').classList.contains('show'))tSB();
   }
 });
 </script>
