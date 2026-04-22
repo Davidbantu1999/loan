@@ -54,6 +54,7 @@
     <hr class="sb-div"/>
     <div class="sb-sec-lbl">Admin</div>
     <a href="admin-users.html" class="sb-item"><span class="sb-icon"><i class="fas fa-users"></i></span>Users</a>
+    <a href="admin-dellog.html" class="sb-item" id="sbDelItem"><span class="sb-icon"><i class="fas fa-trash-alt"></i></span>Deleted<span class="sb-badge" id="sbDelBadge" style="display:none;background:var(--red)">0</span></a>
     <hr class="sb-div"/>
     <button class="sb-item sb-logout" onclick="doLogout()"><span class="sb-icon"><i class="fas fa-sign-out-alt"></i></span>Logout</button>
   </nav>
@@ -65,7 +66,7 @@
 
 <!-- TOPBAR -->
 <header class="topbar">
-  <button class="ham" onclick="tSB()"><i class="fas fa-bars"></i></button>
+  <button class="ham" onclick="tSB()" style="position:relative"><i class="fas fa-bars"></i><span id="hamDot" style="display:none;position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse-g 1.5s ease infinite"></span></button>
   <div style="flex:1">
     <div class="topbar-title">SR Finance Admin</div>
     <div class="topbar-sub" id="hdrSub">Admin Panel</div>
@@ -80,15 +81,7 @@
   </div>
 </header>
 
-<!-- NAV TABS -->
-<div class="nav-wrap">
-  <div class="nav-tabs">
-    <a class="nav-tab" href="admin-srfinance.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-    <a class="nav-tab active" href="admin-customers.html"><i class="fas fa-users"></i> Customers</a>
-    <a class="nav-tab" href="admin-reports.html"><i class="fas fa-file-alt"></i> Reports</a>
-    <a class="nav-tab" href="admin-dellog.html"><i class="fas fa-trash"></i> Deleted <span class="notif-count" id="delCount"></span></a>
-  </div>
-</div>
+<!-- NAV TABS REMOVED - Bottom nav handles page switching -->
 
 <!-- PAGE -->
 <div class="page">
