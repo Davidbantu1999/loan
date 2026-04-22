@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>SR Finance — Customers</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<link rel="stylesheet" href="admin-shared.css"/>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="ld-wrap">
+    <div class="ld-ring"></div>
+    <div class="ld-logo">SF</div>
+  </div>
+  <div class="ld-title">SR Finance Admin</div>
+  <div class="ld-sub" id="ldSub">Loading Customers…</div>
+  <div class="ld-bar-wrap"><div class="ld-bar" id="ldBar"></div></div>
+  <div class="ld-pct" id="ldPct">0%</div>
+</div>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sb-ov" id="sbOv" onclick="tSB()"></div>
+
+<div class="app-layout">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar" id="sbMenu">
+  <div class="sb-top">
+    <div class="sb-brand">
+      <div class="sb-logo"><i class="fas fa-chart-line"></i></div>
+      <div>
+        <div class="sb-brand-name">SR Finance</div>
+        <div class="sb-brand-sub">Admin Panel</div>
+      </div>
+    </div>
+    <div class="sb-profile">
+      <div class="sb-av" id="sbAv">A</div>
+      <div>
+        <div class="sb-pname" id="sbName">Admin</div>
+        <div class="sb-prole"><i class="fas fa-shield-alt" style="font-size:8px;margin-right:3px"></i>Administrator</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec-lbl">Main</div>
+    <a href="admin-srfinance.html" class="sb-item"><span class="sb-icon"><i class="fas fa-chart-pie"></i></span>Dashboard</a>
+    <a href="collection.html" class="sb-item"><span class="sb-icon"><i class="fas fa-rupee-sign"></i></span>Collection</a>
+    <a href="expenses.html" class="sb-item"><span class="sb-icon"><i class="fas fa-chart-bar"></i></span>Expenses</a>
+    <a href="index.html" class="sb-item"><span class="sb-icon"><i class="fas fa-plus-circle"></i></span>New Loan</a>
+    <hr class="sb-div"/>
+    <div class="sb-sec-lbl">Admin</div>
+    <a href="admin-users.html" class="sb-item"><span class="sb-icon"><i class="fas fa-users"></i></span>Users</a>
+    <hr class="sb-div"/>
+    <button class="sb-item sb-logout" onclick="doLogout()"><span class="sb-icon"><i class="fas fa-sign-out-alt"></i></span>Logout</button>
+  </nav>
+  <div class="sb-footer"><p>SR Finance © 2025 · v2.0</p></div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main-wrap">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <button class="ham" onclick="tSB()"><i class="fas fa-bars"></i></button>
+  <div style="flex:1">
+    <div class="topbar-title">SR Finance Admin</div>
+    <div class="topbar-sub" id="hdrSub">Admin Panel</div>
+  </div>
+  <div class="srch-wrap-tb">
+    <span class="srch-icon-tb"><i class="fas fa-search"></i></span>
+    <input type="text" class="srch-tb" id="srchTb" placeholder="Search customers…" oninput="onSrchTb()"/>
+  </div>
+  <div class="topbar-right">
+    <button class="hbtn danger" onclick="openResetModal()"><i class="fas fa-exclamation-circle"></i> Reset</button>
+    <div class="topbar-av" id="topAv" onclick="doLogout()" title="Logout">A</div>
+  </div>
+</header>
+
+<!-- NAV TABS -->
+<div class="nav-wrap">
+  <div class="nav-tabs">
+    <a class="nav-tab" href="admin-srfinance.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="nav-tab active" href="admin-customers.html"><i class="fas fa-users"></i> Customers</a>
+    <a class="nav-tab" href="admin-reports.html"><i class="fas fa-file-alt"></i> Reports</a>
+    <a class="nav-tab" href="admin-dellog.html"><i class="fas fa-trash"></i> Deleted <span class="notif-count" id="delCount"></span></a>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+
+<!-- ══ CUSTOMERS TAB ══ -->
+<div class="tab-pane active" id="tab-customers">
+  <div class="cust-section">
+    <div class="cust-section-title"><i class="fas fa-map-marker-alt" style="color:var(--accent)"></i> Filter by Location</div>
+    <div class="loc-tabs" id="locTabs"></div>
+  </div>
+  <div class="cust-section">
+    <div class="cust-section-title"><i class="fas fa-filter" style="color:var(--accent)"></i> Filter by Status</div>
+    <div class="filter-row">
+      <button class="ftab active" data-f="all" onclick="setF('all')">All</button>
+      <button class="ftab" data-f="paid" onclick="setF('paid')"><i class="fas fa-check"></i> Paid</button>
+      <button class="ftab f-od" data-f="overdue" onclick="setF('overdue')">Overdue</button>
+      <button class="ftab f-done" data-f="completed" onclick="setF('completed')">Completed</button>
+      <button class="ftab" data-f="done" onclick="setF('done')">100% Done</button>
+      <button class="ftab f-warn" data-f="notpaid" onclick="setF('notpaid')">Not Paid</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="srch-wrap">
+      <span class="srch-icon"><i class="fas fa-search"></i></span>
+      <input type="text" class="srch" id="srch" placeholder="Search name, ID, phone…" oninput="onSrch()"/>
+    </div>
+    <button class="tbtn blue" onclick="exportCSV()"><i class="fas fa-download"></i> Export</button>
+    <button class="tbtn green" onclick="openImport()"><i class="fas fa-upload"></i> Import</button>
+    <a href="loan-registration.html" class="tbtn"><i class="fas fa-plus"></i> New Loan</a>
+  </div>
+  <div class="list-count" id="listCount" style="display:none"></div>
+  <div class="cust-grid" id="custGrid">
+    <div class="nd" style="grid-column:1/-1"><div class="nd-icon"><i class="fas fa-spinner fa-spin"></i></div><div class="nd-txt">Loading…</div></div>
+  </div>
+  <div id="pagWrap" class="pag-wrap" style="display:none"></div>
+</div>
+
+</div><!-- /page -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bn-inner">
+    <button class="bn-item" onclick="window.location.href='admin-srfinance.html'">
+      <div class="bn-icon"><i class="fas fa-chart-pie"></i></div><div class="bn-lbl">Dashboard</div>
+    </button>
+    <button class="bn-item active" onclick="window.location.href='admin-customers.html'">
+      <div class="bn-icon"><i class="fas fa-users"></i></div><div class="bn-lbl">Customers</div>
+    </button>
+    <div class="bn-center-wrap">
+      <div class="bn-center" onclick="window.location.href='loan-registration.html'"><i class="fas fa-plus"></i></div>
+    </div>
+    <button class="bn-item" onclick="window.location.href='admin-reports.html'">
+      <div class="bn-icon"><i class="fas fa-file-alt"></i></div><div class="bn-lbl">Reports</div>
+    </button>
+    <a href="admin-users.html" class="bn-item">
+      <div class="bn-icon"><i class="fas fa-user-cog"></i></div><div class="bn-lbl">Users</div>
+    </a>
+  </div>
+</nav>
+
+</div><!-- /main-wrap -->
+</div><!-- /app-layout -->
+
+<div class="toast" id="toast"></div>
+
+<!-- CALL MODAL -->
+<div class="modal" id="callM">
+  <div class="mc" style="text-align:center;max-width:360px">
+    <div class="modal-handle"></div>
+    <div style="font-size:38px;color:var(--accent);margin-bottom:6px"><i class="fas fa-phone-alt"></i></div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px" id="callName"></div>
+    <div style="font-size:26px;font-weight:900;color:var(--accent);margin:10px 0;letter-spacing:2px" id="callNum"></div>
+    <div style="display:flex;gap:8px">
+      <a id="callLink" href="tel:" class="btn bs" style="flex:1;text-decoration:none"><i class="fas fa-phone"></i> Call</a>
+      <button class="btn bg2" style="flex:1" onclick="cpPhone()"><i class="fas fa-copy"></i> Copy</button>
+      <button class="btn bg2" onclick="cM('callM')">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAY MODAL -->
+<div class="modal" id="payM">
+  <div class="mc">
+    <div class="modal-handle"></div>
+    <div class="mt"><i class="fas fa-rupee-sign"></i> Add Payment</div>
+    <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:700" id="payInfo"></div>
+    <div class="qa-row" id="qaRow"></div>
+    <div class="mfield"><label>Amount (₹)</label><input type="number" id="payAmt" placeholder="Enter amount" inputmode="numeric"/></div>
+    <div class="mfield"><label>Date</label><input type="date" id="payDt"/></div>
+    <div class="ma">
+      <button class="btn bs" onclick="savePay()"><i class="fas fa-check"></i> Add Payment</button>
+      <button class="btn bg2" onclick="cM('payM')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE PAY MODAL -->
+<div class="modal" id="delPayM">
+  <div class="mc" style="text-align:center;max-width:380px">
+    <div class="modal-handle"></div>
+    <div style="font-size:38px;color:var(--yellow);margin-bottom:8px"><i class="fas fa-exclamation-triangle"></i></div>
+    <div class="mt">Delete Payment?</div>
+    <p id="delPayInfo" style="color:var(--muted);font-size:13px;margin-bottom:14px"></p>
+    <div class="ma">
+      <button class="btn bg2" onclick="cM('delPayM')">Cancel</button>
+      <button class="btn bd" onclick="confirmDelPay()"><i class="fas fa-trash"></i> Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERDUE MODAL -->
+<div class="modal" id="odM">
+  <div class="mc" style="text-align:center;max-width:380px">
+    <div class="modal-handle"></div>
+    <div style="font-size:38px;color:var(--red);margin-bottom:8px"><i class="fas fa-exclamation-circle"></i></div>
+    <div class="mt">Mark as Overdue?</div>
+    <p id="odInfo" style="color:var(--muted);font-size:13px;margin-bottom:14px"></p>
+    <div class="ma">
+      <button class="btn bg2" onclick="cM('odM')">Cancel</button>
+      <button class="btn bd" onclick="confirmOD()">Mark Overdue</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal" id="detM">
+  <div class="mc">
+    <div class="modal-handle"></div>
+    <div class="mt" id="detTitle">Details</div>
+    <div id="detContent"></div>
+    <div class="ma">
+      <button class="btn bp" onclick="openEditFromDet()"><i class="fas fa-edit"></i> Edit</button>
+      <button class="btn bg2" style="flex:1" onclick="cM('detM')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal" id="editM">
+  <div class="mc">
+    <div class="modal-handle"></div>
+    <div class="mt"><i class="fas fa-edit"></i> Edit Customer</div>
+    <div class="mfield"><label>Prefix</label><input type="text" id="ecPfx" placeholder="e.g. SR"/></div>
+    <div class="mfield"><label>Number</label><input type="number" id="ecNum" inputmode="numeric"/></div>
+    <div style="font-size:11px;color:var(--accent);font-weight:700;margin-bottom:10px;text-align:center;background:var(--accent-soft);padding:9px;border-radius:10px">ID Preview: <span id="ecIdPreview">—</span></div>
+    <div class="mfield"><label>Name</label><input type="text" id="ecN"/></div>
+    <div class="mfield"><label>Parent Name</label><input type="text" id="ecPN"/></div>
+    <div class="mfield"><label>Phone</label><input type="tel" id="ecPh"/></div>
+    <div class="mfield"><label>Aadhar</label><input type="text" id="ecAd" maxlength="14"/></div>
+    <div class="mfield"><label>Address</label><textarea id="ecAdr" rows="2"></textarea></div>
+    <div class="mfield"><label>State</label><input type="text" id="ecSt"/></div>
+    <div class="mfield"><label>City</label><input type="text" id="ecCt"/></div>
+    <div class="mfield"><label>Loan Amount</label><input type="number" id="ecLA" inputmode="numeric"/></div>
+    <div class="mfield"><label>Interest %</label><input type="number" id="ecIR" step="0.1"/></div>
+    <div class="mfield"><label>Installment Amount</label><input type="number" id="ecInA" inputmode="numeric"/></div>
+    <div class="mfield"><label>Payment Type</label>
+      <select id="ecPT"><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
+      <div style="display:flex;gap:8px">
+        <button class="btn bp" style="flex:1" onclick="saveEdit()"><i class="fas fa-save"></i> Save</button>
+        <button class="btn bg2" onclick="cM('editM')">Cancel</button>
+      </div>
+      <button class="btn bd bf" onclick="openDeleteCustomer()"><i class="fas fa-trash"></i> Delete Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CUSTOMER MODAL -->
+<div class="modal" id="delCustM">
+  <div class="mc" style="text-align:center;max-width:380px">
+    <div class="modal-handle"></div>
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;color:var(--red)"><i class="fas fa-lock"></i></div>
+    <div class="mt" style="color:var(--red)">Delete Customer?</div>
+    <div style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:12px;padding:11px;margin-bottom:14px;font-size:11px;color:var(--red);font-weight:700">⚠️ Permanently deletes this customer and ALL their payments!</div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;font-weight:600">Enter PIN:</div>
+    <input type="password" id="delCustPin" inputmode="numeric" maxlength="4" placeholder="• • • •"
+      style="width:100%;padding:14px;border-radius:12px;border:2px solid rgba(244,63,94,.3);background:rgba(255,255,255,.04);color:var(--white);font-size:26px;text-align:center;letter-spacing:12px;font-family:'Inter',sans-serif;margin-bottom:10px;transition:border .15s"/>
+    <div id="delCustPinErr" style="color:var(--red);font-size:11px;font-weight:700;margin-bottom:10px;display:none">❌ Wrong PIN.</div>
+    <div class="ma">
+      <button class="btn bd bf" onclick="confirmDeleteCustomer()"><i class="fas fa-trash"></i> Delete</button>
+      <button class="btn bg2" onclick="cM('delCustM')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW LOAN MODAL -->
+<div class="modal" id="newLoanM">
+  <div class="mc">
+    <div class="modal-handle"></div>
+    <div class="mt"><i class="fas fa-plus-circle"></i> New Loan</div>
+    <div style="background:var(--accent-soft);border:1px solid rgba(124,109,250,.2);border-radius:12px;padding:10px;margin-bottom:12px;font-size:12px;font-weight:700;text-align:center">
+      <span id="nlCustName" style="color:var(--white)"></span> · <span id="nlCustId" style="color:var(--accent)"></span><br>
+      <span style="color:var(--purple)">Loan # <span id="nlLoanNum">02</span></span>
+    </div>
+    <div class="mfield"><label>Prefix</label><input type="text" id="nlPrefix" oninput="updateNlIdPreview()"/></div>
+    <div style="font-size:11px;color:var(--accent);font-weight:700;margin-bottom:10px;text-align:center;background:var(--accent-soft);padding:9px;border-radius:10px">New ID: <span id="nlIdPreview" style="color:var(--green)">—</span></div>
+    <div class="mfield"><label>Loan Amount (₹)</label><input type="number" id="nlAmt" inputmode="numeric" placeholder="Enter amount" oninput="calcNL()"/></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="qa-btn" onclick="nlQAmt(5000)">₹5K</button>
+      <button class="qa-btn" onclick="nlQAmt(10000)">₹10K</button>
+      <button class="qa-btn" onclick="nlQAmt(20000)">₹20K</button>
+      <button class="qa-btn" onclick="nlQAmt(50000)">₹50K</button>
+    </div>
+    <div class="mfield"><label>Interest %</label><input type="number" id="nlIR" value="20" step="0.1" oninput="calcNL()"/></div>
+    <div class="mfield"><label>Installment Amount (₹)</label><input type="number" id="nlInstAmt" inputmode="numeric" oninput="calcNL()"/></div>
+    <div class="mfield"><label>Payment Type</label>
+      <select id="nlPT"><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select>
+    </div>
+    <div class="mfield"><label>Start Date</label><input type="date" id="nlDate"/></div>
+    <div class="nl-calc" id="nlCalc" style="display:none">
+      <div class="nl-calc-row"><span>Loan Amount</span><span id="nlCalcLA">₹0</span></div>
+      <div class="nl-calc-row"><span>Commission</span><span id="nlCalcCm" style="color:var(--red)">-₹0</span></div>
+      <div class="nl-calc-row"><span>Customer Receives</span><span id="nlCalcRc" style="color:var(--green)">₹0</span></div>
+      <div class="nl-calc-row"><span>Interest</span><span id="nlCalcInt">₹0</span></div>
+      <div class="nl-calc-row"><span>Installments</span><span id="nlCalcNi">0</span></div>
+      <div class="nl-calc-row"><span style="color:var(--accent)">Total Payable</span><span id="nlCalcTP" style="color:var(--accent)">₹0</span></div>
+    </div>
+    <div class="ma" style="margin-top:14px">
+      <button class="btn bp" onclick="saveNewLoan()"><i class="fas fa-plus"></i> Create Loan</button>
+      <button class="btn bg2" onclick="cM('newLoanM')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal" id="importM">
+  <div class="mc" style="max-width:420px">
+    <div class="modal-handle"></div>
+    <div class="mt"><i class="fas fa-upload"></i> Import Customers</div>
+    <div class="mfield"><label>CSV File</label><input type="file" id="importFile" accept=".csv" style="padding:10px;color:var(--white)"/></div>
+    <div id="importPreview" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
+    <div class="ma">
+      <button class="btn bs" onclick="doImport()"><i class="fas fa-upload"></i> Import</button>
+      <button class="btn bg2" onclick="cM('importM')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET MODAL -->
+<div class="modal" id="resetM">
+  <div class="mc" style="text-align:center;max-width:360px">
+    <div class="modal-handle"></div>
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;color:var(--red)"><i class="fas fa-lock"></i></div>
+    <div class="mt" style="color:var(--red)">Reset All Data</div>
+    <div style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:12px;padding:11px;margin-bottom:14px;font-size:11px;color:var(--red);font-weight:700">⚠️ Permanently deletes ALL customers and payments!</div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;font-weight:600">Enter Admin PIN:</div>
+    <input type="password" id="resetPin" inputmode="numeric" maxlength="4" placeholder="• • • •"
+      style="width:100%;padding:14px;border-radius:12px;border:2px solid rgba(244,63,94,.3);background:rgba(255,255,255,.04);color:var(--white);font-size:26px;text-align:center;letter-spacing:12px;font-family:'Inter',sans-serif;margin-bottom:10px"/>
+    <div id="resetPinErr" style="color:var(--red);font-size:11px;font-weight:700;margin-bottom:10px;display:none">❌ Wrong PIN.</div>
+    <div class="ma">
+      <button class="btn bd bf" onclick="confirmReset()"><i class="fas fa-trash"></i> Delete Everything</button>
+      <button class="btn bg2" onclick="closeResetModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAY ANIMATION -->
+<div id="payAnimOv" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(8px)">
+  <div style="background:linear-gradient(135deg,#0e1527,#162035);border:1px solid rgba(124,109,250,.3);border-radius:22px;padding:32px 40px;text-align:center;animation:slideUp .4s ease;box-shadow:0 24px 60px rgba(0,0,0,.8)">
+    <div style="font-size:50px;color:var(--green)"><i class="fas fa-check-circle"></i></div>
+    <div style="font-size:30px;font-weight:900;color:var(--green);margin:8px 0 4px;letter-spacing:-1px" id="payAnimAmt">₹0</div>
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:12px">Payment Saved!</div>
+    <div style="font-size:17px;font-weight:900;color:var(--white)" id="payAnimName"></div>
+    <div style="font-size:12px;font-weight:700;color:var(--accent)" id="payAnimId"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="admin-shared.js"></script>
+</body>
+</html>
