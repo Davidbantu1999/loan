@@ -31,7 +31,7 @@ var db=firebase.database();
 setLD(40,'Loading data…');
 
 /* ══ STATE ══ */
-var AC={},AP={},DL=[],EX=[],PX=[];
+var AC={},AP={},DL=[],EX=[],PX=[],PRESENCE={},ALL_USERS={};
 var aLoc='',aFilter='all';
 var apC=null,apPend=0;
 var dpCid=null,dpKey=null;
@@ -58,6 +58,7 @@ function E(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 function SK(id){return String(id||'').replace(/[.$#[\]/]/g,'_');}
 function SI(s){return String(s||'').replace(/[^a-zA-Z0-9]/g,'_');}
 function ini2(n){return(n||'?').split(/\s+/).map(function(x){return x[0]||'';}).join('').toUpperCase().slice(0,2)||'?';}
+function fmtExact(ts){if(!ts)return'—';var d=new Date(Number(ts));var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0'),ap=h>=12?'PM':'AM';h=h%12||12;return String(d.getDate()).padStart(2,'0')+' '+mo[d.getMonth()]+' '+d.getFullYear()+', '+h+':'+m+' '+ap;}
 
 /* ══ DATE RANGES ══ */
 function getWB(d){var s=new Date(d);var dy=s.getDay();var df=dy===0?6:dy-1;s.setDate(s.getDate()-df);s.setHours(0,0,0,0);var e=new Date(s);e.setDate(e.getDate()+6);e.setHours(23,59,59,999);return{s:s,e:e};}
@@ -105,27 +106,54 @@ db.ref('deletedPayments').on('value',function(s){
   if(cnt){if(nc>0){cnt.textContent=nc;cnt.classList.add('show');}else{cnt.classList.remove('show');}}
   prevDelCount=nc;if(dataReady)renderDelLog();
 });
-db.ref('onlineUsers').on('value',function(s){renderOnlineUsers(s.val()||{});});
+db.ref('users').on('value',function(s){ALL_USERS=s.val()||{};renderOnlineUsers();});
+db.ref('presence').on('value',function(s){PRESENCE=s.val()||{};renderOnlineUsers();});
 
 /* ══ ONLINE USERS ══ */
 function markOnline(){
-  var key=SK(CU.name);var ref=db.ref('onlineUsers/'+key);
-  ref.set({name:CU.name,role:CU.role||'user',lastSeen:Date.now()});
-  ref.onDisconnect().remove();
-  setInterval(function(){ref.update({lastSeen:Date.now()});},30000);
+  var key=SK(CU.name);var now=Date.now();var presRef=db.ref('presence/'+key);
+  presRef.set({name:CU.name,role:CU.role||'admin',online:true,onlineSince:now,lastSeen:now});
+  presRef.onDisconnect().update({online:false,lastSeen:firebase.database.ServerValue.TIMESTAMP});
+  setInterval(function(){presRef.update({lastSeen:Date.now()});},30000);
 }
-function renderOnlineUsers(ou){
+function renderOnlineUsers(){
   var list=document.getElementById('onlineList'),cnt=document.getElementById('onlineCount');
-  if(!list)return;var now=Date.now();
-  var active=Object.values(ou).filter(function(u){return(now-(u.lastSeen||0))<120000;});
-  cnt.textContent=active.length;
-  if(!active.length){list.innerHTML='<div class="online-empty">No users online</div>';return;}
-  list.innerHTML=active.map(function(u){
-    var ago=Math.floor((now-(u.lastSeen||0))/1000);var agoStr=ago<60?ago+'s ago':Math.floor(ago/60)+'m ago';
-    return'<div class="online-item"><div class="online-av">'+ini(u.name||'?')+'</div><div><div class="online-name">'+E(u.name||'?')+'</div><div class="online-time">'+E(u.role||'user')+' · '+agoStr+'</div></div></div>';
+  if(!list)return;
+  var presenceByName={};
+  Object.values(PRESENCE).forEach(function(p){if(p&&p.name)presenceByName[p.name]=p;});
+  var seen={};
+  var entries=Object.values(ALL_USERS).filter(function(u){return u&&u.name;}).map(function(u){
+    seen[u.name]=true;
+    var p=presenceByName[u.name]||null;
+    var isOnline=!!(p&&p.online===true);
+    var ts=isOnline?(p.onlineSince||p.lastSeen):(p&&p.lastSeen)||null;
+    return{name:u.name,role:u.role||'staff',isOnline:isOnline,ts:ts};
+  });
+  Object.values(PRESENCE).forEach(function(p){
+    if(!p||!p.name||seen[p.name])return;
+    var isOnline=!!(p.online===true);
+    var ts=isOnline?(p.onlineSince||p.lastSeen):(p.lastSeen)||null;
+    entries.push({name:p.name,role:p.role||'admin',isOnline:isOnline,ts:ts});
+  });
+  entries.sort(function(a,b){if(a.isOnline&&!b.isOnline)return -1;if(!a.isOnline&&b.isOnline)return 1;return(b.ts||0)-(a.ts||0);});
+  var onlineCount=entries.filter(function(x){return x.isOnline;}).length;
+  if(cnt)cnt.textContent=onlineCount+' online / '+entries.length+' total';
+  if(!entries.length){list.innerHTML='<div class="online-empty">No users found</div>';return;}
+  list.innerHTML=entries.map(function(x){
+    var timeLabel=x.isOnline?'Online since: '+fmtExact(x.ts):'Offline since: '+fmtExact(x.ts);
+    var dotColor=x.isOnline?'#22c55e':'#f43f5e';
+    var dotAnim=x.isOnline?'animation:pulse-g 1.5s ease infinite':'';
+    var avBg=x.isOnline?'linear-gradient(135deg,#22c55e,#16a34a)':'linear-gradient(135deg,#f43f5e,#be123c)';
+    var timeColor=x.isOnline?'#22c55e':'var(--muted)';
+    return'<div class="online-item">'
+      +'<span style="width:9px;height:9px;border-radius:50%;background:'+dotColor+';flex-shrink:0;display:inline-block;'+dotAnim+'"></span>'
+      +'<div class="online-av" style="background:'+avBg+'">'+ini(x.name)+'</div>'
+      +'<div><div class="online-name">'+E(x.name)+'</div>'
+      +'<div class="online-time" style="color:'+timeColor+'">'+timeLabel+'</div></div>'
+      +'</div>';
   }).join('');
 }
-function doLogout(){try{db.ref('onlineUsers/'+SK(CU.name)).remove();}catch(x){}localStorage.removeItem('srUser');window.location.href='login.html';}
+function doLogout(){try{var now=Date.now();db.ref('presence/'+SK(CU.name)).update({online:false,lastSeen:now});}catch(x){}localStorage.removeItem('srUser');window.location.href='login.html';}
 
 /* ══ uAll ══ */
 function uAll(){
