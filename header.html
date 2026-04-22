@@ -1,0 +1,81 @@
+<!-- SHARED HEADER TEMPLATE — copy this into each page and adjust active states -->
+<!--
+  header.html — Reusable sidebar, topbar and bottom-nav blocks for SR Finance admin pages.
+  
+  HOW TO USE:
+  1. Copy the three blocks below into your HTML page.
+  2. In the sidebar <nav>, add class="sb-item active" to the link for the current page.
+  3. In the bottom nav, add class="bn-item active" to the button for the current page.
+  4. Adjust the topbar placeholder text / search input as needed for your page.
+-->
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar" id="sbMenu">
+  <div class="sb-top">
+    <div class="sb-brand">
+      <div class="sb-logo"><i class="fas fa-chart-line"></i></div>
+      <div>
+        <div class="sb-brand-name">SR Finance</div>
+        <div class="sb-brand-sub">Admin Panel</div>
+      </div>
+    </div>
+    <div class="sb-profile">
+      <div class="sb-av" id="sbAv">A</div>
+      <div>
+        <div class="sb-pname" id="sbName">Admin</div>
+        <div class="sb-prole"><i class="fas fa-shield-alt" style="font-size:8px;margin-right:3px"></i>Administrator</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec-lbl">Main</div>
+    <a href="admin-srfinance.html" class="sb-item"><span class="sb-icon"><i class="fas fa-chart-pie"></i></span>Dashboard</a>
+    <a href="collection.html" class="sb-item"><span class="sb-icon"><i class="fas fa-rupee-sign"></i></span>Collection</a>
+    <a href="expenses.html" class="sb-item"><span class="sb-icon"><i class="fas fa-chart-bar"></i></span>Expenses</a>
+    <a href="index.html" class="sb-item"><span class="sb-icon"><i class="fas fa-plus-circle"></i></span>New Loan</a>
+    <hr class="sb-div"/>
+    <div class="sb-sec-lbl">Admin</div>
+    <a href="admin-users.html" class="sb-item"><span class="sb-icon"><i class="fas fa-users"></i></span>Users</a>
+    <hr class="sb-div"/>
+    <button class="sb-item sb-logout" onclick="doLogout()"><span class="sb-icon"><i class="fas fa-sign-out-alt"></i></span>Logout</button>
+  </nav>
+  <div class="sb-footer"><p>SR Finance © 2025 · v2.0</p></div>
+</aside>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <button class="ham" onclick="tSB()"><i class="fas fa-bars"></i></button>
+  <div style="flex:1">
+    <div class="topbar-title">SR Finance Admin</div>
+    <div class="topbar-sub" id="hdrSub">Admin Panel</div>
+  </div>
+  <div class="srch-wrap-tb">
+    <span class="srch-icon-tb"><i class="fas fa-search"></i></span>
+    <input type="text" class="srch-tb" id="srchTb" placeholder="Search customers…" oninput="onSrchTb()"/>
+  </div>
+  <div class="topbar-right">
+    <button class="hbtn danger" onclick="openResetModal()"><i class="fas fa-exclamation-circle"></i> Reset</button>
+    <div class="topbar-av" id="topAv" onclick="doLogout()" title="Logout">A</div>
+  </div>
+</header>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bn-inner">
+    <button class="bn-item" onclick="window.location.href='admin-srfinance.html'">
+      <div class="bn-icon"><i class="fas fa-chart-pie"></i></div><div class="bn-lbl">Dashboard</div>
+    </button>
+    <button class="bn-item" onclick="window.location.href='admin-customers.html'">
+      <div class="bn-icon"><i class="fas fa-users"></i></div><div class="bn-lbl">Customers</div>
+    </button>
+    <div class="bn-center-wrap">
+      <div class="bn-center" onclick="window.location.href='loan-registration.html'"><i class="fas fa-plus"></i></div>
+    </div>
+    <button class="bn-item" onclick="window.location.href='admin-reports.html'">
+      <div class="bn-icon"><i class="fas fa-file-alt"></i></div><div class="bn-lbl">Reports</div>
+    </button>
+    <a href="admin-users.html" class="bn-item">
+      <div class="bn-icon"><i class="fas fa-user-cog"></i></div><div class="bn-lbl">Users</div>
+    </a>
+  </div>
+</nav>
