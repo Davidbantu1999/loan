@@ -568,13 +568,16 @@ html,body{
   </div>
   <nav class="sb-nav">
     <div class="sb-sec-lbl">Main</div>
-    <a href="admin-srfinance.html" class="sb-item active"><span class="sb-icon"><i class="fas fa-chart-pie"></i></span>Dashboard</a>
+    <a href="admin-srfinance.html" class="sb-item active" id="sb-dashboard"><span class="sb-icon"><i class="fas fa-chart-pie"></i></span>Dashboard</a>
+    <a href="admin-customers.html" class="sb-item" id="sb-customers"><span class="sb-icon"><i class="fas fa-users"></i></span>Customers</a>
+    <a href="admin-reports.html" class="sb-item" id="sb-reports"><span class="sb-icon"><i class="fas fa-file-alt"></i></span>Reports</a>
+    <a href="admin-dellog.html" class="sb-item" id="sb-dellog"><span class="sb-icon"><i class="fas fa-trash"></i></span>Deleted <span class="sb-badge" id="delCountSb" style="display:none"></span></a>
     <a href="collection.html" class="sb-item"><span class="sb-icon"><i class="fas fa-rupee-sign"></i></span>Collection</a>
     <a href="expenses.html" class="sb-item"><span class="sb-icon"><i class="fas fa-chart-bar"></i></span>Expenses</a>
     <a href="index.html" class="sb-item"><span class="sb-icon"><i class="fas fa-plus-circle"></i></span>New Loan</a>
     <hr class="sb-div"/>
     <div class="sb-sec-lbl">Admin</div>
-    <a href="admin-users.html" class="sb-item"><span class="sb-icon"><i class="fas fa-users"></i></span>Users</a>
+    <a href="admin-users.html" class="sb-item"><span class="sb-icon"><i class="fas fa-users-cog"></i></span>Users</a>
     <hr class="sb-div"/>
     <button class="sb-item sb-logout" onclick="doLogout()"><span class="sb-icon"><i class="fas fa-sign-out-alt"></i></span>Logout</button>
   </nav>
@@ -772,8 +775,8 @@ html,body{
     <button class="bn-item" onclick="window.location.href='admin-reports.html'">
       <div class="bn-icon"><i class="fas fa-file-alt"></i></div><div class="bn-lbl">Reports</div>
     </button>
-    <a href="admin-users.html" class="bn-item">
-      <div class="bn-icon"><i class="fas fa-user-cog"></i></div><div class="bn-lbl">Users</div>
+    <a href="admin-dellog.html" class="bn-item">
+      <div class="bn-icon"><i class="fas fa-trash"></i></div><div class="bn-lbl">Deleted</div>
     </a>
   </div>
 </nav>
