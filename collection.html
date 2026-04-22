@@ -886,12 +886,14 @@ function setOnlineStatus(st){
     onlineRef=db.ref('onlineUsers/'+key);
     onlineRef.set({name:CU.name,role:CU.role||'staff',lastSeen:now,status:'online',onlineSince:now});
     onlineRef.onDisconnect().remove();
+    db.ref('presence/'+key).update({name:CU.name,role:CU.role||'staff',online:true,onlineSince:now,lastSeen:now});
   } else {
     offlineTs=now;
     document.getElementById('offlineTime').textContent=fmtTs(offlineTs);
     document.getElementById('onlineTime').textContent=onlineTs?fmtTs(onlineTs):'';
     db.ref('onlineUsers/'+key).remove();
     if(onlineRef){onlineRef.onDisconnect().cancel();onlineRef=null;}
+    db.ref('presence/'+key).update({online:false,lastSeen:now});
   }
 }
 setOnlineStatus('online');

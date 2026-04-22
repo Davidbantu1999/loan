@@ -31,7 +31,7 @@ var db=firebase.database();
 setLD(40,'Loading data…');
 
 /* ══ STATE ══ */
-var AC={},AP={},DL=[],EX=[],PX=[];
+var AC={},AP={},DL=[],EX=[],PX=[],ALLUSERS={},presSnap={},ouSnap={};
 var aLoc='',aFilter='all';
 var apC=null,apPend=0;
 var dpCid=null,dpKey=null;
@@ -54,6 +54,7 @@ function fmtD(s){if(!s)return'—';var d=new Date(s);return isNaN(d.getTime())?s
 function fmtISO(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
 function pad2(n){return String(n).padStart(2,'0');}
 function fmtDS(d){return d.getDate()+' '+MO[d.getMonth()];}
+function fmtExact(ts){if(!ts)return'—';var d=new Date(Number(ts));var h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0'),ap=h>=12?'PM':'AM';h=h%12||12;return d.getDate()+' '+MO[d.getMonth()]+' '+d.getFullYear()+', '+h+':'+m+' '+ap;}
 function E(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function SK(id){return String(id||'').replace(/[.$#[\]/]/g,'_');}
 function SI(s){return String(s||'').replace(/[^a-zA-Z0-9]/g,'_');}
@@ -105,26 +106,55 @@ db.ref('deletedPayments').on('value',function(s){
   if(cnt){if(nc>0){cnt.textContent=nc;cnt.classList.add('show');}else{cnt.classList.remove('show');}}
   prevDelCount=nc;if(dataReady)renderDelLog();
 });
-db.ref('onlineUsers').on('value',function(s){renderOnlineUsers(s.val()||{});});
+db.ref('onlineUsers').on('value',function(s){ouSnap=s.val()||{};buildOnlineList();});
+db.ref('presence').on('value',function(s){presSnap=s.val()||{};buildOnlineList();});
+db.ref('users').on('value',function(s){ALLUSERS=s.val()||{};buildOnlineList();});
 
 /* ══ ONLINE USERS ══ */
 function markOnline(){
-  var key=SK(CU.name);var ref=db.ref('onlineUsers/'+key);
-  ref.set({name:CU.name,role:CU.role||'user',lastSeen:Date.now()});
+  var key=SK(CU.name);var ref=db.ref('onlineUsers/'+key);var now=Date.now();
+  ref.set({name:CU.name,role:CU.role||'user',lastSeen:now,onlineSince:now});
   ref.onDisconnect().remove();
+  db.ref('presence/'+key).update({name:CU.name,role:CU.role||'user',online:true,onlineSince:now,lastSeen:now});
   setInterval(function(){ref.update({lastSeen:Date.now()});},30000);
 }
-function renderOnlineUsers(ou){
+function buildOnlineList(){
   var list=document.getElementById('onlineList'),cnt=document.getElementById('onlineCount');
-  if(!list)return;var now=Date.now();
-  var active=Object.values(ou).filter(function(u){return(now-(u.lastSeen||0))<120000;});
-  cnt.textContent=active.length;
-  if(!active.length){list.innerHTML='<div class="online-empty">No users online</div>';return;}
-  list.innerHTML=active.map(function(u){
-    var ago=Math.floor((now-(u.lastSeen||0))/1000);var agoStr=ago<60?ago+'s ago':Math.floor(ago/60)+'m ago';
-    return'<div class="online-item"><div class="online-av">'+ini(u.name||'?')+'</div><div><div class="online-name">'+E(u.name||'?')+'</div><div class="online-time">'+E(u.role||'user')+' · '+agoStr+'</div></div></div>';
+  if(!list)return;
+  var entries=[];
+  Object.entries(ALLUSERS).forEach(function(e){
+    var uid=e[0],u=e[1];
+    var ou=ouSnap[SK(u.name||uid)];
+    var pr=presSnap[SK(u.name||uid)];
+    var isOnline=!!(ou&&ou.name);
+    /* onlineSince: when they clicked Online; offlineSince: last time they clicked Offline */
+    var onlineSince=isOnline?(ou.onlineSince||ou.lastSeen):null;
+    var offlineSince=(!isOnline&&pr&&!pr.online)?pr.lastSeen:null;
+    entries.push({name:u.name||u.username||uid,role:u.role||'user',isOnline:isOnline,onlineSince:onlineSince,offlineSince:offlineSince});
+  });
+  /* online users first, then sort by most recent activity descending */
+  entries.sort(function(a,b){
+    if(a.isOnline&&!b.isOnline)return -1;
+    if(!a.isOnline&&b.isOnline)return 1;
+    var ta=a.isOnline?a.onlineSince:a.offlineSince;
+    var tb=b.isOnline?b.onlineSince:b.offlineSince;
+    return(tb||0)-(ta||0);
+  });
+  var onlineCount=entries.filter(function(x){return x.isOnline;}).length;
+  if(cnt)cnt.textContent=onlineCount+' online / '+entries.length+' total';
+  if(!entries.length){list.innerHTML='<div class="online-empty">No users found</div>';return;}
+  list.innerHTML=entries.map(function(x){
+    var timeLabel=x.isOnline?'Online since: '+fmtExact(x.onlineSince):(x.offlineSince?'Offline since: '+fmtExact(x.offlineSince):'Offline');
+    var offCls=x.isOnline?'':' is-offline';
+    return'<div class="online-item'+offCls+'">'
+      +'<span class="online-status-dot'+(x.isOnline?' is-online':' is-offline')+'"></span>'
+      +'<div class="online-av'+offCls+'">'+ini(x.name)+'</div>'
+      +'<div><div class="online-name">'+E(x.name)+'</div>'
+      +'<div class="online-time'+(x.isOnline?' is-online':'')+'">'+E(timeLabel)+'</div></div>'
+      +'</div>';
   }).join('');
 }
+function renderOnlineUsers(ou){buildOnlineList();}
 function doLogout(){try{db.ref('onlineUsers/'+SK(CU.name)).remove();}catch(x){}localStorage.removeItem('srUser');window.location.href='login.html';}
 
 /* ══ uAll ══ */
