@@ -32,6 +32,7 @@ setLD(40,'Loading data…');
 
 /* ══ STATE ══ */
 var AC={},AP={},DL=[],EX=[],PX=[];
+var ALL_ONLINE={},ALL_USERS_MAP={};
 var aLoc='',aFilter='all';
 var apC=null,apPend=0;
 var dpCid=null,dpKey=null;
@@ -101,11 +102,14 @@ db.ref('payments').on('value',function(s){AP=s.val()||{};checkLoaded();if(dataRe
 db.ref('expenses').on('value',function(s){EX=s.val()?Object.values(s.val()):[];if(dataReady&&document.getElementById('chartExp'))updateExpensesChart();});
 db.ref('deletedPayments').on('value',function(s){
   var raw=s.val()||{};DL=Object.values(raw);var nc=DL.length;
-  var cnt=document.getElementById('delCount');
-  if(cnt){if(nc>0){cnt.textContent=nc;cnt.classList.add('show');}else{cnt.classList.remove('show');}}
+  var badge=document.getElementById('sbDelBadge');
+  var dot=document.getElementById('hamDot');
+  if(badge){if(nc>0){badge.textContent=nc;badge.style.display='inline-block';}else{badge.style.display='none';}}
+  if(dot){dot.style.display=nc>0?'block':'none';}
   prevDelCount=nc;if(dataReady)renderDelLog();
 });
-db.ref('onlineUsers').on('value',function(s){renderOnlineUsers(s.val()||{});});
+db.ref('onlineUsers').on('value',function(s){ALL_ONLINE=s.val()||{};renderOnlineUsers();});
+db.ref('users').on('value',function(s){ALL_USERS_MAP=s.val()||{};renderOnlineUsers();});
 
 /* ══ ONLINE USERS ══ */
 function markOnline(){
@@ -114,15 +118,52 @@ function markOnline(){
   ref.onDisconnect().remove();
   setInterval(function(){ref.update({lastSeen:Date.now()});},30000);
 }
-function renderOnlineUsers(ou){
+function fmtAgo(ms){
+  if(ms<60000)return'just now';
+  var m=Math.floor(ms/60000);if(m<60)return m+'m ago';
+  var h=Math.floor(m/60);var rm=m%60;return h+'h '+(rm?rm+'m ':'')+'ago';
+}
+function renderOnlineUsers(){
   var list=document.getElementById('onlineList'),cnt=document.getElementById('onlineCount');
-  if(!list)return;var now=Date.now();
-  var active=Object.values(ou).filter(function(u){return(now-(u.lastSeen||0))<120000;});
-  cnt.textContent=active.length;
-  if(!active.length){list.innerHTML='<div class="online-empty">No users online</div>';return;}
-  list.innerHTML=active.map(function(u){
-    var ago=Math.floor((now-(u.lastSeen||0))/1000);var agoStr=ago<60?ago+'s ago':Math.floor(ago/60)+'m ago';
-    return'<div class="online-item"><div class="online-av">'+ini(u.name||'?')+'</div><div><div class="online-name">'+E(u.name||'?')+'</div><div class="online-time">'+E(u.role||'user')+' · '+agoStr+'</div></div></div>';
+  if(!list)return;
+  var now=Date.now();
+  var onlineByKey={};
+  Object.values(ALL_ONLINE).forEach(function(u){if(u&&u.name){onlineByKey[SK(u.name)]={lastSeen:u.lastSeen||0,name:u.name,role:u.role||'user'};}});
+  var allUsers=Object.values(ALL_USERS_MAP);
+  if(!allUsers.length){
+    var activeCount=Object.values(onlineByKey).filter(function(u){return(now-u.lastSeen)<180000;}).length;
+    cnt.textContent=activeCount+' online';
+    if(!Object.keys(onlineByKey).length){list.innerHTML='<div class="online-empty">No users registered</div>';return;}
+    var rows=Object.values(onlineByKey).sort(function(a,b){return b.lastSeen-a.lastSeen;}).map(function(u){
+      var online=(now-u.lastSeen)<180000;
+      var agoMs=now-u.lastSeen;var agoStr=online?(agoMs<60000?'Online now':'Online · '+fmtAgo(agoMs)):'Last seen: '+fmtAgo(agoMs);
+      var avGrad=online?'linear-gradient(135deg,var(--green),#16a34a)':'linear-gradient(135deg,#7f1d1d,var(--red))';
+      return'<div class="online-item" style="background:'+(online?'rgba(34,197,94,.08)':'rgba(244,63,94,.06)')+';border-color:'+(online?'rgba(34,197,94,.18)':'rgba(244,63,94,.15)')+'">'+
+        '<div style="width:9px;height:9px;border-radius:50%;background:'+(online?'var(--green)':'var(--red)')+(online?';animation:pulse-g 1.5s ease infinite':'')+';flex-shrink:0"></div>'+
+        '<div class="online-av" style="background:'+avGrad+'">'+ini(u.name||'?')+'</div>'+
+        '<div><div class="online-name">'+E(u.name||'?')+'</div><div class="online-time" style="color:'+(online?'var(--green)':'var(--red)')+'">'+E(agoStr)+'</div></div>'+
+      '</div>';
+    });
+    list.innerHTML=rows.join('');
+    return;
+  }
+  var result=allUsers.map(function(u){
+    var name=u.name||u.displayName||u.email||'Unknown';var key=SK(name);
+    var ol=onlineByKey[key];var lastSeen=ol?ol.lastSeen:0;
+    var online=ol&&(now-lastSeen)<180000;
+    return{name:name,role:u.role||'user',online:online,lastSeen:lastSeen};
+  });
+  result.sort(function(a,b){if(a.online!==b.online)return a.online?-1:1;return b.lastSeen-a.lastSeen;});
+  var onlineCount=result.filter(function(u){return u.online;}).length;
+  cnt.textContent=onlineCount+' online / '+result.length+' total';
+  list.innerHTML=result.map(function(u){
+    var agoMs=now-(u.lastSeen||0);var agoStr=u.online?(agoMs<60000?'Online now':'Online · '+fmtAgo(agoMs)):(u.lastSeen?'Last seen: '+fmtAgo(agoMs):'Offline');
+    var avGrad=u.online?'linear-gradient(135deg,var(--green),#16a34a)':'linear-gradient(135deg,#7f1d1d,var(--red))';
+    return'<div class="online-item" style="background:'+(u.online?'rgba(34,197,94,.08)':'rgba(244,63,94,.06)')+';border-color:'+(u.online?'rgba(34,197,94,.18)':'rgba(244,63,94,.15)')+'">'+
+      '<div style="width:9px;height:9px;border-radius:50%;background:'+(u.online?'var(--green)':'var(--red)')+(u.online?';animation:pulse-g 1.5s ease infinite':'')+';flex-shrink:0"></div>'+
+      '<div class="online-av" style="background:'+avGrad+'">'+ini(u.name||'?')+'</div>'+
+      '<div><div class="online-name">'+E(u.name||'?')+'</div><div class="online-time" style="color:'+(u.online?'var(--green)':'var(--red)')+'">'+E(agoStr)+'</div></div>'+
+    '</div>';
   }).join('');
 }
 function doLogout(){try{db.ref('onlineUsers/'+SK(CU.name)).remove();}catch(x){}localStorage.removeItem('srUser');window.location.href='login.html';}
@@ -168,7 +209,7 @@ function switchTab(name,el){
   if(name==='dashboard')setTimeout(updateCharts,120);
   if(name==='customers'){curPage=1;renderLocTabs();renderCust();}
   if(name==='reports')buildReport();
-  if(name==='dellog'){renderDelLog();document.getElementById('delCount').classList.remove('show');}
+  if(name==='dellog'){renderDelLog();var dc=document.getElementById('delCount');if(dc)dc.classList.remove('show');}
 }
 function onSrchTb(){
   var v=document.getElementById('srchTb').value;
@@ -202,6 +243,17 @@ function updateCollStrips(){
   updateMonthPick();
 }
 function updateMonthPick(){var v=document.getElementById('monthPicker').value;if(!v)return;var parts=v.split('-');var y=Number(parts[0]);var m=Number(parts[1]);var s=new Date(y,m-1,1);var e=new Date(y,m,0,23,59,59,999);document.getElementById('monthPickVal').textContent=fmtM(paysInRange(s,e).reduce(function(t,p){return t+(Number(p.amount)||0);},0));}
+function toggleCustomRange(){var r=document.getElementById('customRangeRow');if(!r)return;r.style.display=r.style.display==='none'?'flex':'none';}
+function updateCustomRange(){
+  var from=document.getElementById('customFrom').value;var to=document.getElementById('customTo').value;
+  if(!from||!to)return;
+  var total=0;
+  Object.values(AC).forEach(function(c){
+    var ps=AP[SK(c.customerId)];if(!ps||typeof ps!=='object')return;
+    Object.values(ps).forEach(function(p){if(p.date>=from&&p.date<=to)total+=Number(p.amount||0);});
+  });
+  var el=document.getElementById('customRangeVal');if(el)el.textContent=fmtM(total);
+}
 
 /* ══ EXPENSES CHART ══ */
 function updateExpensesChart(){
@@ -800,14 +852,40 @@ function buildReport(){
     '<div class="scard c-purple"><div class="scard-icon" style="color:var(--purple)"><i class="fas fa-flag-checkered"></i></div><div class="scard-val">'+completedC+'</div><div class="scard-lbl">Completed</div></div>'+
     '<div class="scard c-yellow"><div class="scard-icon" style="color:var(--yellow)"><i class="fas fa-receipt"></i></div><div class="scard-val">'+pays.length+'</div><div class="scard-lbl">Payments</div></div>';
   var userMap={};
-  pays.forEach(function(p){var by=p.collectedBy||'Unknown';if(!userMap[by])userMap[by]={name:by,count:0,total:0};userMap[by].count++;userMap[by].total+=Number(p.amount)||0;});
+  var todayStr=fmtISO(new Date());
+  pays.forEach(function(p){var by=p.collectedBy||'Unknown';if(!userMap[by])userMap[by]={name:by,count:0,total:0,paidTodayCusts:{},notPaid:0,overdue:0,newLoans:0};userMap[by].count++;userMap[by].total+=Number(p.amount)||0;if(p.date===todayStr&&p.customerId)userMap[by].paidTodayCusts[p.customerId]=true;});
+  cs.forEach(function(c){
+    var cPays=gPays(c.customerId);
+    if(isOD(c)){var col=c.collectedBy||(cPays[0]||{}).collectedBy||'Unknown';if(userMap[col])userMap[col].overdue++;}
+    if(!isTodayPaid(c.customerId)){var notPaidCollector=(cPays[0]||{}).collectedBy||'Unknown';if(userMap[notPaidCollector])userMap[notPaidCollector].notPaid++;}
+    var sd=c.date||(c.savedAt?fmtISO(new Date(c.savedAt)):'');
+    if(sd>=fmtISO(s)&&sd<=fmtISO(e)){var firstPay=cPays.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);})[0];var newLoanCol=(firstPay&&firstPay.collectedBy)||c.createdBy||'Unknown';if(userMap[newLoanCol])userMap[newLoanCol].newLoans++;}
+  });
   var users=Object.values(userMap).sort(function(a,b){return b.total-a.total;});
+  var tTotal=0,tCount=0,tPaidToday=0,tNotPaid=0,tOverdue=0,tNewLoans=0;
+  users.forEach(function(u){tTotal+=u.total;tCount+=u.count;tPaidToday+=Object.keys(u.paidTodayCusts).length;tNotPaid+=u.notPaid;tOverdue+=u.overdue;tNewLoans+=u.newLoans;});
+  var footEl=document.getElementById('userTableFoot');
   document.getElementById('userTableBody').innerHTML=users.length?users.map(function(u,i){
+    var paidToday=Object.keys(u.paidTodayCusts).length;
     return'<tr><td><span class="user-rank">'+(i+1)+'</span></td>'+
       '<td style="font-weight:700;color:var(--white)"><i class="fas fa-user-circle" style="color:var(--accent);margin-right:5px"></i>'+E(u.name)+'</td>'+
+      '<td class="user-amt">'+fmtM(u.total)+'</td>'+
       '<td><span style="background:var(--accent-soft);color:var(--accent);border:1px solid rgba(124,109,250,.25);border-radius:50px;padding:3px 10px;font-size:11px;font-weight:900">'+u.count+'</span></td>'+
-      '<td class="user-amt">'+fmtM(u.total)+'</td></tr>';
-  }).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">No payments in this range</td></tr>';
+      '<td style="color:var(--green);font-weight:800">'+paidToday+'</td>'+
+      '<td style="color:var(--yellow);font-weight:800">'+u.notPaid+'</td>'+
+      '<td style="color:var(--red);font-weight:800">'+u.overdue+'</td>'+
+      '<td style="color:var(--purple);font-weight:800">'+u.newLoans+'</td>'+
+      '</tr>';
+  }).join(''):'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">No payments in this range</td></tr>';
+  if(footEl&&users.length){footEl.innerHTML='<tr style="background:rgba(124,109,250,.08);font-weight:900">'+
+    '<td colspan="2" style="font-weight:900;color:var(--white);padding:10px 12px">TOTAL</td>'+
+    '<td class="user-amt">'+fmtM(tTotal)+'</td>'+
+    '<td><span style="background:var(--accent-soft);color:var(--accent);border:1px solid rgba(124,109,250,.25);border-radius:50px;padding:3px 10px;font-size:11px;font-weight:900">'+tCount+'</span></td>'+
+    '<td style="color:var(--green);font-weight:900">'+tPaidToday+'</td>'+
+    '<td style="color:var(--yellow);font-weight:900">'+tNotPaid+'</td>'+
+    '<td style="color:var(--red);font-weight:900">'+tOverdue+'</td>'+
+    '<td style="color:var(--purple);font-weight:900">'+tNewLoans+'</td>'+
+    '</tr>';}else if(footEl)footEl.innerHTML='';
   var sorted=cs.slice().sort(function(a,b){return(parseInt((b.customerId||'').split('-').pop())||0)-(parseInt((a.customerId||'').split('-').pop())||0);});
   document.getElementById('reportBody').innerHTML=sorted.map(function(c,i){
     var pd=gPaid(c.customerId);var t=c.totalPayable||0;var pn=Math.max(0,t-pd);var pct=t>0?Math.min(100,Math.round((pd/t)*100)):0;
@@ -846,11 +924,16 @@ function downloadReportCSV(){
   var se=getReportRange();var pays=paysInRange(se.s,se.e);var cs=Object.values(AC);
   var rng=document.getElementById('reportRange').value;
   var rngLabel={today:'Today',week:'This Week',month:'This Month',all:'All Time',custom:'Custom'}[rng]||rng;
-  var userMap={};
-  pays.forEach(function(p){var by=p.collectedBy||'Unknown';if(!userMap[by])userMap[by]={name:by,count:0,total:0};userMap[by].count++;userMap[by].total+=Number(p.amount)||0;});
   var csv='SR Finance — Collection Report\nRange: '+rngLabel+'\nGenerated: '+new Date().toLocaleString('en-IN')+'\n\n';
-  csv+='=== COLLECTION BY USER ===\n#,Collector,Payments,Total\n';
-  Object.values(userMap).sort(function(a,b){return b.total-a.total;}).forEach(function(u,i){csv+=(i+1)+',"'+u.name+'",'+u.count+','+u.total+'\n';});
+  csv+='=== COLLECTION BY USER ===\n#,Collector,Total Collected,Payments,Paid Today,Not Paid,Overdue,New Loans\n';
+  var csvTodayStr=fmtISO(new Date());
+  var csvUserMap={};
+  pays.forEach(function(p){var by=p.collectedBy||'Unknown';if(!csvUserMap[by])csvUserMap[by]={name:by,count:0,total:0,paidTodayCusts:{},notPaid:0,overdue:0,newLoans:0};csvUserMap[by].count++;csvUserMap[by].total+=Number(p.amount)||0;if(p.date===csvTodayStr&&p.customerId)csvUserMap[by].paidTodayCusts[p.customerId]=true;});
+  cs.forEach(function(c){
+    if(isOD(c)){var col=c.collectedBy||(gPays(c.customerId)[0]||{}).collectedBy||'Unknown';if(csvUserMap[col])csvUserMap[col].overdue++;}
+    if(!isTodayPaid(c.customerId)){var notPaidCollector=(gPays(c.customerId)[0]||{}).collectedBy||'Unknown';if(csvUserMap[notPaidCollector])csvUserMap[notPaidCollector].notPaid++;}
+  });
+  Object.values(csvUserMap).sort(function(a,b){return b.total-a.total;}).forEach(function(u,i){csv+=(i+1)+',"'+u.name+'",'+u.total+','+u.count+','+Object.keys(u.paidTodayCusts).length+','+u.notPaid+','+u.overdue+','+u.newLoans+'\n';});
   csv+='\n=== CUSTOMER DETAILS ===\n';
   var hdr=['#','ID','Name','Parent','Phone','Address','State','City','Loan','Int%','Commission','Receives','Int Amt','Total Payable','Installment','Type','Paid','Pending','Progress%','Status','Last Payment','Start Date','Today Paid'];
   csv+=hdr.map(function(h){return'"'+h+'"';}).join(',')+'\n';
