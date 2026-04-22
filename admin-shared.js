@@ -350,7 +350,7 @@ function buildLocStat(){
 }
 
 /* ══ GOTO CUSTOMERS ══ */
-function goCust(f){window.location.href='admin-customers.html?filter='+f;}
+function goCust(f){window.location.href='admin-customers.html?filter='+encodeURIComponent(f);}
 
 /* ══ URL PARAMS (customers page) ══ */
 function applyUrlParams(){
@@ -614,7 +614,7 @@ function openDet(id){
   document.getElementById('detContent').innerHTML=
     '<div class="det-grid">'+
       '<div class="det-item"><div class="dl">ID</div><div class="dv" style="color:var(--accent)">'+E(id)+'</div><button class="cpb" onclick="cpT(\''+E(id)+'\',this)"><i class="fas fa-copy"></i></button></div>'+
-      '<div class="det-item"><div class="dl">Started</div><div class="dv">'+sd+'</div></div>'+
+      '<div class="det-item"><div class="dl">Started</div><div class="dv">'+E(sd)+'</div></div>'+
       '<div class="det-item"><div class="dl">Name</div><div class="dv">'+E(c.name||'—')+'</div><button class="cpb" onclick="cpT(\''+E(c.name||'')+'\',this)"><i class="fas fa-copy"></i></button></div>'+
       '<div class="det-item"><div class="dl">Parent</div><div class="dv">'+E(c.parentName||'—')+'</div></div>'+
       '<div class="det-item"><div class="dl">Phone</div><div class="dv"><a href="tel:'+E(c.phone||'')+'" style="color:var(--green);text-decoration:none;font-weight:700">'+E(c.phone||'—')+'</a></div><button class="cpb" onclick="cpT(\''+E(c.phone||'')+'\',this)"><i class="fas fa-copy"></i></button></div>'+
