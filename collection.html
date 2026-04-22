@@ -870,7 +870,7 @@ function pad2(n){return String(n).padStart(2,'0');}
 function fmtTs(ts){if(!ts)return'';var d=new Date(ts);return d.getDate()+' '+MO[d.getMonth()]+', '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
 function E(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function ini2(n){return(n||'?').split(/\s+/).map(function(x){return x[0]||'';}).join('').toUpperCase().slice(0,2)||'?';}
-function doLogout(){try{db.ref('onlineUsers/'+SK(CU.name)).remove();}catch(x){}localStorage.removeItem('srUser');window.location.href='login.html';}
+function doLogout(){try{var key=SK(CU.name);db.ref('onlineUsers/'+key).remove();db.ref('presence/'+key).update({online:false,lastSeen:firebase.database.ServerValue.TIMESTAMP});}catch(x){}localStorage.removeItem('srUser');window.location.href='login.html';}
 function tSB(){document.getElementById('sbMenu').classList.toggle('show');document.getElementById('sbOv').classList.toggle('show');document.body.style.overflow=document.getElementById('sbMenu').classList.contains('show')?'hidden':'';}
 
 /* ══ ONLINE / OFFLINE ══ */
@@ -879,6 +879,7 @@ function setOnlineStatus(st){
   document.getElementById('btnOnline').classList.toggle('active',isUserOnline);
   document.getElementById('btnOffline').classList.toggle('active',!isUserOnline);
   var key=SK(CU.name),now=Date.now();
+  var presRef=db.ref('presence/'+key);
   if(isUserOnline){
     onlineTs=now;offlineTs=null;
     document.getElementById('onlineTime').textContent=fmtTs(onlineTs);
@@ -886,16 +887,19 @@ function setOnlineStatus(st){
     onlineRef=db.ref('onlineUsers/'+key);
     onlineRef.set({name:CU.name,role:CU.role||'staff',lastSeen:now,status:'online',onlineSince:now});
     onlineRef.onDisconnect().remove();
+    presRef.update({name:CU.name,role:CU.role||'staff',online:true,onlineSince:now,lastSeen:now});
+    presRef.onDisconnect().update({online:false,lastSeen:firebase.database.ServerValue.TIMESTAMP});
   } else {
     offlineTs=now;
     document.getElementById('offlineTime').textContent=fmtTs(offlineTs);
     document.getElementById('onlineTime').textContent=onlineTs?fmtTs(onlineTs):'';
     db.ref('onlineUsers/'+key).remove();
     if(onlineRef){onlineRef.onDisconnect().cancel();onlineRef=null;}
+    presRef.update({online:false,lastSeen:firebase.database.ServerValue.TIMESTAMP});
   }
 }
 setOnlineStatus('online');
-setInterval(function(){if(isUserOnline&&onlineRef)onlineRef.update({lastSeen:Date.now()});},30000);
+setInterval(function(){if(isUserOnline&&onlineRef){var t=Date.now();onlineRef.update({lastSeen:t});db.ref('presence/'+SK(CU.name)).update({lastSeen:t});}},30000);
 
 /* ══ DATE RANGES ══ */
 function getTodayR(){var s=new Date();s.setHours(0,0,0,0);var e=new Date();e.setHours(23,59,59,999);return{s:s,e:e};}
