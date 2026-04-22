@@ -105,27 +105,50 @@ db.ref('deletedPayments').on('value',function(s){
   if(cnt){if(nc>0){cnt.textContent=nc;cnt.classList.add('show');}else{cnt.classList.remove('show');}}
   prevDelCount=nc;if(dataReady)renderDelLog();
 });
-db.ref('onlineUsers').on('value',function(s){renderOnlineUsers(s.val()||{});});
+var _presSnap={},_usersSnap={};
+db.ref('presence').on('value',function(s){_presSnap=s.val()||{};buildOnlineList(_presSnap,_usersSnap);});
+db.ref('users').on('value',function(s){_usersSnap=s.val()||{};buildOnlineList(_presSnap,_usersSnap);});
 
 /* ══ ONLINE USERS ══ */
+function fmtExact(ts){if(!ts)return'—';var d=new Date(Number(ts));var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];var h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0'),ap=h>=12?'PM':'AM';h=h%12||12;return String(d.getDate()).padStart(2,'0')+' '+mo[d.getMonth()]+' '+d.getFullYear()+', '+h+':'+m+' '+ap;}
 function markOnline(){
-  var key=SK(CU.name);var ref=db.ref('onlineUsers/'+key);
-  ref.set({name:CU.name,role:CU.role||'user',lastSeen:Date.now()});
+  var key=SK(CU.name),now=Date.now();
+  var presRef=db.ref('presence/'+key);
+  presRef.update({name:CU.name,role:CU.role||'user',online:true,onlineSince:now,lastSeen:now});
+  presRef.onDisconnect().update({online:false,lastSeen:firebase.database.ServerValue.TIMESTAMP});
+  var ref=db.ref('onlineUsers/'+key);
+  ref.set({name:CU.name,role:CU.role||'user',lastSeen:now,onlineSince:now});
   ref.onDisconnect().remove();
-  setInterval(function(){ref.update({lastSeen:Date.now()});},30000);
+  setInterval(function(){var t=Date.now();ref.update({lastSeen:t});presRef.update({lastSeen:t});},30000);
 }
-function renderOnlineUsers(ou){
+function buildOnlineList(presenceData,usersData){
   var list=document.getElementById('onlineList'),cnt=document.getElementById('onlineCount');
-  if(!list)return;var now=Date.now();
-  var active=Object.values(ou).filter(function(u){return(now-(u.lastSeen||0))<120000;});
-  cnt.textContent=active.length;
-  if(!active.length){list.innerHTML='<div class="online-empty">No users online</div>';return;}
-  list.innerHTML=active.map(function(u){
-    var ago=Math.floor((now-(u.lastSeen||0))/1000);var agoStr=ago<60?ago+'s ago':Math.floor(ago/60)+'m ago';
-    return'<div class="online-item"><div class="online-av">'+ini(u.name||'?')+'</div><div><div class="online-name">'+E(u.name||'?')+'</div><div class="online-time">'+E(u.role||'user')+' · '+agoStr+'</div></div></div>';
+  if(!list)return;
+  var entries=[];
+  Object.entries(usersData||{}).forEach(function(e){
+    var uid=e[0],u=e[1];
+    var name=u.name||u.username||uid;
+    var pres=presenceData?presenceData[SK(name)]:null;
+    var isOnline=pres&&pres.online===true;
+    var ts=isOnline?(pres.onlineSince||pres.lastSeen):(pres&&pres.lastSeen)||null;
+    entries.push({name:name,isOnline:isOnline,ts:ts});
+  });
+  entries.sort(function(a,b){if(a.isOnline&&!b.isOnline)return -1;if(!a.isOnline&&b.isOnline)return 1;return(b.ts||0)-(a.ts||0);});
+  var onlineCount=entries.filter(function(x){return x.isOnline;}).length;
+  if(cnt)cnt.textContent=onlineCount+' online / '+entries.length+' total';
+  if(!entries.length){list.innerHTML='<div class="online-empty">No users found</div>';return;}
+  list.innerHTML=entries.map(function(x){
+    var timeLabel=x.isOnline?'Online since: '+fmtExact(x.ts):'Offline since: '+fmtExact(x.ts);
+    var bg=x.isOnline?'rgba(34,197,94,.08)':'rgba(244,63,94,.06)';
+    var border=x.isOnline?'rgba(34,197,94,.18)':'rgba(244,63,94,.15)';
+    var dotColor=x.isOnline?'var(--green)':'var(--red)';
+    var dotStyle='width:9px;height:9px;border-radius:50%;background:'+dotColor+';flex-shrink:0;display:inline-block'+(x.isOnline?';animation:pulse-g 1.5s ease infinite':'');
+    var timeColor=x.isOnline?'var(--green)':'var(--muted)';
+    var avBg=x.isOnline?'linear-gradient(135deg,var(--green),var(--green2))':'linear-gradient(135deg,var(--red),var(--red2))';
+    return'<div class="online-item" style="background:'+bg+';border-color:'+border+'"><span style="'+dotStyle+'"></span><div class="online-av" style="background:'+avBg+'">'+ini(x.name)+'</div><div><div class="online-name">'+E(x.name)+'</div><div class="online-time" style="color:'+timeColor+'">'+timeLabel+'</div></div></div>';
   }).join('');
 }
-function doLogout(){try{db.ref('onlineUsers/'+SK(CU.name)).remove();}catch(x){}localStorage.removeItem('srUser');window.location.href='login.html';}
+function doLogout(){try{var key=SK(CU.name);db.ref('onlineUsers/'+key).remove();db.ref('presence/'+key).update({online:false,lastSeen:firebase.database.ServerValue.TIMESTAMP});}catch(x){}localStorage.removeItem('srUser');window.location.href='login.html';}
 
 /* ══ uAll ══ */
 function uAll(){
